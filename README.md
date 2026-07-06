@@ -38,20 +38,23 @@ compilado). Por isso a "Primeira execução" abaixo faz `composer install` e
 
 ## Requisitos
 
-- [Docker](https://www.docker.com/) + Docker Compose
-- PHP 8.3+ e [Composer](https://getcomposer.org/) 2.x — usados **só** para o
-  `composer install` inicial; depois disso todo o código roda dentro dos
-  containers do Sail (PHP 8.5), não precisa do PHP do host para mais nada.
-- [Node.js](https://nodejs.org/) 20+ e NPM
+- [Docker](https://www.docker.com/) + Docker Compose. **Só isso** — o fluxo
+  abaixo não precisa de PHP, Composer nem Node instalados na máquina; tudo
+  roda dentro de containers (o próprio Composer/Node usados no bootstrap vêm
+  de imagens Docker descartáveis).
 
-> Sem PHP/Composer instalados localmente? Veja a alternativa em
-> [Sem PHP local](#sem-php-local-alternativa) mais abaixo.
+> Já tem PHP 8.3+/Composer/Node instalados e prefere usá-los direto (mais
+> rápido)? Veja [Alternativa com PHP/Node no host](#alternativa-com-phpnode-no-host).
 
 ## Primeira execução (pasta zerada / clone novo)
 
-1. **Instalar as dependências PHP:**
+Time usa Docker como único requisito — nenhum passo abaixo toca em PHP/Node
+da máquina.
+
+1. **Clonar e entrar no projeto:**
    ```bash
-   composer install
+   git clone <url-do-repo> portal-invest-bahia
+   cd portal-invest-bahia
    ```
 
 2. **Criar o `.env`** a partir do exemplo e ajustar as variáveis abaixo:
@@ -72,19 +75,22 @@ compilado). Por isso a "Primeira execução" abaixo faz `composer install` e
    DB_USERNAME=sail
    DB_PASSWORD=password
 
-   # Portas expostas no host (ajuste se 80/5432 já estiverem em uso na sua máquina).
+   # Portas expostas no host (ajuste se já estiverem em uso na sua máquina).
    APP_PORT=8080
    FORWARD_DB_PORT=5433
    ```
-   Gere a chave da aplicação:
-   ```bash
-   php artisan key:generate
-   ```
 
-3. **Instalar as dependências JS:**
+3. **Rodar o `composer install` inicial via container descartável**
+   (isso cria `vendor/`, incluindo `vendor/bin/sail` — é o único jeito de
+   começar sem PHP no host, já que o próprio Sail vive dentro do `vendor/`):
    ```bash
-   npm install
+   docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd):/var/www/html" -w /var/www/html \
+     laravelsail/php84-composer:latest composer install --no-scripts --ignore-platform-reqs
    ```
+   > `--no-scripts` é necessário: essa imagem é só para resolver dependências,
+   > não tem as extensões da aplicação (gd, intl...) para rodar o
+   > `artisan package:discover` automático do Composer. Sem problema — isso
+   > roda naturalmente no primeiro comando `sail artisan` do passo 5.
 
 4. **Subir os containers (Sail):**
    ```bash
@@ -94,7 +100,14 @@ compilado). Por isso a "Primeira execução" abaixo faz `composer install` e
    > Docker pode estar apontando para o Docker Desktop indisponível. Troque
    > para o contexto padrão do sistema: `docker context use default`.
 
-5. **Rodar as migrations e o seeder:**
+5. **Gerar a chave da aplicação e instalar as dependências JS**
+   (o container já tem PHP, Composer *e* Node/npm embutidos — tudo via `sail`):
+   ```bash
+   ./vendor/bin/sail artisan key:generate
+   ./vendor/bin/sail npm install
+   ```
+
+6. **Rodar as migrations e o seeder:**
    ```bash
    ./vendor/bin/sail artisan migrate --seed
    ```
@@ -102,13 +115,13 @@ compilado). Por isso a "Primeira execução" abaixo faz `composer install` e
    de exemplo e as 6 páginas fixas do site (Início, Fazenda, Ativo, Serviço,
    Informações, Contatos).
 
-6. **Criar o link de storage** (necessário para as imagens dos anúncios/eventos
+7. **Criar o link de storage** (necessário para as imagens dos anúncios/eventos
    aparecerem no site público):
    ```bash
    ./vendor/bin/sail artisan storage:link
    ```
 
-7. **Compilar os assets front-end:**
+8. **Compilar os assets front-end:**
    ```bash
    ./vendor/bin/sail npm run build
    ```
@@ -127,7 +140,17 @@ Pronto — acesse:
 | Administrador | `admin@pib.com.br` | `password` |
 | Corretor (exemplo) | `corretor@pib.com.br` | `password` |
 
-> Troque essas senhas antes de qualquer uso além do ambiente local.
+> Troque essas senhas antes de qualquer uso além do ambiente local (ou
+> defina `PIB_ADMIN_PASSWORD`/`PIB_BROKER_PASSWORD` no `.env` antes do seed —
+> ver [Regras de negócio importantes](#regras-de-negócio-importantes)).
+
+### Se o container ficar em loop de erro logo na primeira subida
+
+Se `sail up -d` funcionar mas o site não responder (container reiniciando),
+rode `docker logs portal-invest-bahia-laravel.test-1` para ver o motivo. O
+Supervisor do container desiste de reiniciar sozinho depois de algumas
+tentativas rápidas — resolvido o problema (ex.: rodando o passo que faltava),
+um `docker restart portal-invest-bahia-laravel.test-1` retoma normalmente.
 
 ## Comandos do dia a dia
 
@@ -182,15 +205,23 @@ fallback de idioma).
   `public/storage`). Coleções de mídia sem `->useDisk('public')` explícito
   ficam inacessíveis no site (ver comentário nos models `Listing`/`Event`).
 
-## Sem PHP local (alternativa)
+## Alternativa com PHP/Node no host
 
-Se sua máquina não tem PHP/Composer, use um container temporário para o
-`composer install` inicial:
+Se sua máquina já tem PHP 8.3+, Composer e Node instalados, dá pra pular os
+containers descartáveis do passo 3 e rodar direto (mais rápido):
 ```bash
-docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd):/var/www/html" -w /var/www/html \
-  laravelsail/php84-composer:latest composer install --ignore-platform-reqs
+composer install
+cp .env.example .env   # e ajuste as variáveis (passo 2 acima)
+php artisan key:generate
+npm install
+./vendor/bin/sail up -d
+./vendor/bin/sail artisan migrate --seed
+./vendor/bin/sail artisan storage:link
+./vendor/bin/sail npm run build
 ```
-Depois siga normalmente a partir do passo 2 (criar `.env`).
+A partir do `sail up -d`, o resto é idêntico ao fluxo padrão — só os passos
+1-3 (que criam `vendor/`/`node_modules/` e a `APP_KEY`) rodam no host em vez
+de containers descartáveis.
 
 ## Deploy em produção
 
