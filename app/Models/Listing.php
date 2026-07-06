@@ -9,11 +9,31 @@ use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Illuminate\Support\Str;
 use Spatie\Translatable\HasTranslations;
 
 class Listing extends Model implements HasMedia
 {
     use HasTranslations, InteractsWithMedia;
+
+    protected static function booted(): void
+    {
+        // Garante um slug único a partir do primeiro título preenchido (o
+        // corretor pode ter publicado em qualquer um dos 4 idiomas).
+        static::saving(function (Listing $listing): void {
+            if (blank($listing->slug)) {
+                $titles = $listing->getTranslations('title');
+                $firstTitle = $titles['pt'] ?? collect($titles)->first(fn ($value) => filled($value));
+                $base = Str::slug($firstTitle ?: 'anuncio');
+                $slug = $base;
+                $i = 1;
+                while (static::where('slug', $slug)->whereKeyNot($listing->getKey())->exists()) {
+                    $slug = $base.'-'.$i++;
+                }
+                $listing->slug = $slug;
+            }
+        });
+    }
 
     /** Categorias válidas. */
     public const CATEGORIES = ['fazenda', 'ativo', 'servico'];
@@ -57,8 +77,10 @@ class Listing extends Model implements HasMedia
 
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('main')->singleFile();
-        $this->addMediaCollection('gallery');
+        // Disco explícito: sem isso o Filament recai em `filament.default_filesystem_disk`
+        // (= FILESYSTEM_DISK = 'local', privado) e as imagens ficam inacessíveis publicamente.
+        $this->addMediaCollection('main')->useDisk('public')->singleFile();
+        $this->addMediaCollection('gallery')->useDisk('public');
     }
 
     public function registerMediaConversions(?Media $media = null): void

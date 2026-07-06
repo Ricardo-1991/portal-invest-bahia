@@ -13,12 +13,32 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class ListingResource extends Resource
 {
     protected static ?string $model = Listing::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static ?string $modelLabel = 'Classificado';
+
+    protected static ?string $pluralModelLabel = 'Classificados';
+
+    protected static ?string $recordTitleAttribute = 'slug';
+
+    /** Corretor enxerga apenas os próprios classificados; admin vê todos. */
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        $user = auth()->user();
+        if ($user && ! $user->isAdmin()) {
+            $query->where('user_id', $user->id);
+        }
+
+        return $query;
+    }
 
     public static function form(Schema $schema): Schema
     {

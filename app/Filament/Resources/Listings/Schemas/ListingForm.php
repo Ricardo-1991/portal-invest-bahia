@@ -40,7 +40,7 @@ class ListingForm
                             ])
                             ->default('draft')
                             ->required()
-                            ->helperText('Só é possível publicar com os 4 idiomas preenchidos.'),
+                            ->helperText('Preencha título e descrição em pelo menos um idioma para publicar.'),
 
                         TextInput::make('region')
                             ->label('Região / Localização')
@@ -64,7 +64,7 @@ class ListingForm
                         TextInput::make('slug')
                             ->label('Slug (URL)')
                             ->maxLength(255)
-                            ->helperText('Deixe em branco para gerar a partir do título em português.'),
+                            ->helperText('Deixe em branco para gerar automaticamente a partir do título preenchido.'),
                     ]),
 
                 Section::make('Conteúdo por idioma')
@@ -72,12 +72,11 @@ class ListingForm
                         LocaleTabs::make(fn (string $locale): array => [
                             TextInput::make("title.{$locale}")
                                 ->label('Título')
-                                ->required($locale === 'pt')
                                 ->maxLength(255)
-                                // Gera o slug a partir do título em português, se ainda vazio.
+                                // Gera o slug a partir do primeiro título preenchido, se ainda vazio.
                                 ->live(onBlur: true)
-                                ->afterStateUpdated(function (Set $set, ?string $state, $get) use ($locale) {
-                                    if ($locale === 'pt' && blank($get('slug')) && filled($state)) {
+                                ->afterStateUpdated(function (Set $set, ?string $state, $get) {
+                                    if (blank($get('slug')) && filled($state)) {
                                         $set('slug', Str::slug($state));
                                     }
                                 }),
@@ -88,7 +87,6 @@ class ListingForm
 
                             Textarea::make("description.{$locale}")
                                 ->label('Descrição')
-                                ->required($locale === 'pt')
                                 ->rows(6),
                         ]),
                     ]),
@@ -99,6 +97,10 @@ class ListingForm
                             ->label('Imagem principal')
                             ->collection('main')
                             ->image()
+                            // Restringe a formatos raster (exclui SVG: risco de XSS armazenado
+                            // se um arquivo malicioso for aberto direto pela URL do storage).
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                            ->maxSize(8192)
                             ->imageEditor(),
 
                         SpatieMediaLibraryFileUpload::make('gallery')
@@ -106,7 +108,10 @@ class ListingForm
                             ->collection('gallery')
                             ->multiple()
                             ->reorderable()
-                            ->image(),
+                            ->image()
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                            ->maxSize(8192)
+                            ->maxFiles(12),
                     ]),
             ]);
     }

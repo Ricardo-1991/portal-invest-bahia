@@ -12,6 +12,10 @@ export default defineConfig({
                 bunny('Instrument Sans', {
                     weights: [400, 500, 600],
                 }),
+                // Serif de destaque para títulos — identidade luxury (preto/dourado) da logo.
+                bunny('Playfair Display', {
+                    weights: [500, 600, 700],
+                }),
             ],
         }),
         tailwindcss(),

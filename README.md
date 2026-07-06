@@ -1,58 +1,199 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# PIB — Portal Invest Bahia
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Portal de classificados multilíngue (PT/EN/ES/IT) para corretores de
+propriedades rurais (fazendas), ativos e serviços na Bahia. MVP com site
+público + painel administrativo (Filament).
 
-## About Laravel
+**Stack:** Laravel 13 + Filament 5 (admin) · Blade + Tailwind v4 + Alpine.js
+(site público) · PostgreSQL · Docker (Laravel Sail no desenvolvimento).
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Já configurado? Só suba o container
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+Se `vendor/`, `node_modules/`, `.env` e o banco **já existem** (é o caso deste
+projeto agora, ou de quem já rodou a "Primeira execução" abaixo alguma vez),
+não precisa repetir composer/npm/migrate — é só:
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+./vendor/bin/sail up -d
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Isso **é**, na prática, um `docker compose up -d` (o Sail é só um wrapper fino
+em cima do `compose.yaml`, que já carrega o `.env` do projeto automaticamente).
 
-## Contributing
+### Por que não dá pra usar só `docker compose up` numa pasta zerada
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+O `compose.yaml` de desenvolvimento **monta** `vendor/` e `node_modules/` do
+host como volume dentro do container, em vez de "assar" essas dependências na
+imagem — é assim que o Sail permite instalar pacotes/hot-reload sem rebuildar
+a imagem a cada mudança. Ou seja: **se essas pastas ainda não existem**, subir
+o container não resolve sozinho — a aplicação sobe mas quebra na hora (sem
+autoload do Composer, sem `APP_KEY`, sem schema migrado, sem CSS/JS
+compilado). Por isso a "Primeira execução" abaixo faz `composer install` e
+`npm install` **antes** de subir o container.
 
-## Code of Conduct
+> Isso é diferente do `compose.prod.yaml` de produção: o Dockerfile de lá faz
+> um build multi-estágio que realmente empacota composer + npm **dentro** da
+> imagem, então `docker compose -f compose.prod.yaml up --build` é
+> autossuficiente (ver [Deploy em produção](#deploy-em-produção)).
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Requisitos
 
-## Security Vulnerabilities
+- [Docker](https://www.docker.com/) + Docker Compose
+- PHP 8.3+ e [Composer](https://getcomposer.org/) 2.x — usados **só** para o
+  `composer install` inicial; depois disso todo o código roda dentro dos
+  containers do Sail (PHP 8.5), não precisa do PHP do host para mais nada.
+- [Node.js](https://nodejs.org/) 20+ e NPM
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+> Sem PHP/Composer instalados localmente? Veja a alternativa em
+> [Sem PHP local](#sem-php-local-alternativa) mais abaixo.
 
-## License
+## Primeira execução (pasta zerada / clone novo)
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+1. **Instalar as dependências PHP:**
+   ```bash
+   composer install
+   ```
+
+2. **Criar o `.env`** a partir do exemplo e ajustar as variáveis abaixo:
+   ```bash
+   cp .env.example .env
+   ```
+   Edite o `.env` e defina:
+   ```env
+   APP_NAME=PIB
+   APP_URL=http://localhost:8080
+   APP_LOCALE=pt
+   APP_FALLBACK_LOCALE=pt
+
+   DB_CONNECTION=pgsql
+   DB_HOST=pgsql
+   DB_PORT=5432
+   DB_DATABASE=laravel
+   DB_USERNAME=sail
+   DB_PASSWORD=password
+
+   # Portas expostas no host (ajuste se 80/5432 já estiverem em uso na sua máquina).
+   APP_PORT=8080
+   FORWARD_DB_PORT=5433
+   ```
+   Gere a chave da aplicação:
+   ```bash
+   php artisan key:generate
+   ```
+
+3. **Instalar as dependências JS:**
+   ```bash
+   npm install
+   ```
+
+4. **Subir os containers (Sail):**
+   ```bash
+   ./vendor/bin/sail up -d
+   ```
+   > Se aparecer o erro `Docker or Podman is not running`, seu contexto do
+   > Docker pode estar apontando para o Docker Desktop indisponível. Troque
+   > para o contexto padrão do sistema: `docker context use default`.
+
+5. **Rodar as migrations e o seeder:**
+   ```bash
+   ./vendor/bin/sail artisan migrate --seed
+   ```
+   O seeder cria os papéis (`admin`, `broker`), um administrador, um corretor
+   de exemplo e as 6 páginas fixas do site (Início, Fazenda, Ativo, Serviço,
+   Informações, Contatos).
+
+6. **Criar o link de storage** (necessário para as imagens dos anúncios/eventos
+   aparecerem no site público):
+   ```bash
+   ./vendor/bin/sail artisan storage:link
+   ```
+
+7. **Compilar os assets front-end:**
+   ```bash
+   ./vendor/bin/sail npm run build
+   ```
+   Para desenvolvimento com hot-reload, use `./vendor/bin/sail npm run dev`
+   em outro terminal.
+
+Pronto — acesse:
+
+- **Site público:** http://localhost:8080/pt (também `/en`, `/es`, `/it`)
+- **Painel administrativo:** http://localhost:8080/admin
+
+### Credenciais padrão (seeder)
+
+| Papel | E-mail | Senha |
+|---|---|---|
+| Administrador | `admin@pib.com.br` | `password` |
+| Corretor (exemplo) | `corretor@pib.com.br` | `password` |
+
+> Troque essas senhas antes de qualquer uso além do ambiente local.
+
+## Comandos do dia a dia
+
+Todos os comandos `artisan`, `composer` e `npm` devem rodar **dentro do
+Sail** para usar o PHP/Node do container:
+
+```bash
+./vendor/bin/sail up -d              # subir os containers em background
+./vendor/bin/sail down                # parar os containers
+./vendor/bin/sail artisan tinker      # REPL do Laravel
+./vendor/bin/sail artisan test        # rodar a suíte de testes
+./vendor/bin/sail composer require ...
+./vendor/bin/sail npm run dev|build
+```
+
+Dica: crie um alias `sail='./vendor/bin/sail'` no seu shell para encurtar.
+
+## Testes
+
+```bash
+./vendor/bin/sail artisan test
+```
+Suíte atual: 16 testes cobrindo autenticação/permissões do painel, regras de
+publicação multilíngue, geração de PDF e o site público (i18n, busca,
+fallback de idioma).
+
+## Estrutura do projeto (visão geral)
+
+- `app/Filament/` — Resources do painel admin (Listing, Event, PageContent,
+  User) e os traits de tradução (`LocaleTabs`, `LoadsTranslations`,
+  `GuardsListingPublication`).
+- `app/Http/Controllers/PublicController.php` — rotas públicas
+  (`/{locale}/...`), busca e paginação.
+- `app/Models/` — `Listing`, `Event`, `PageContent` (traduzíveis via
+  `spatie/laravel-translatable`) e `User` (papéis via `spatie/laravel-permission`).
+- `resources/views/public/` — site público (Blade + Tailwind + Alpine).
+- `resources/views/pdf/listing.blade.php` — PDF interno do classificado
+  (gerado via `barryvdh/laravel-dompdf`, ação disponível só no admin).
+- `docker/production/` — Dockerfile e `README.md` com o passo a passo de
+  **deploy em produção** (Nginx + PHP-FPM + PostgreSQL, backups, VPS `.com.br`).
+
+## Regras de negócio importantes
+
+- **Idiomas:** PT, EN, ES, IT. O visitante escolhe livremente o idioma
+  (`/pt`, `/en`, `/es`, `/it`); cada anúncio precisa ter título e descrição
+  preenchidos em **pelo menos um** idioma para ser publicado (o corretor
+  publica no idioma dele; o site cai para português e, se preciso, para
+  qualquer idioma preenchido, em vez de mostrar texto em branco).
+- **Papéis:** `admin` (acesso total) e `broker` (só enxerga/edita os próprios
+  classificados).
+- **Imagens:** sempre em disco `public` (`storage/app/public`, servido via
+  `public/storage`). Coleções de mídia sem `->useDisk('public')` explícito
+  ficam inacessíveis no site (ver comentário nos models `Listing`/`Event`).
+
+## Sem PHP local (alternativa)
+
+Se sua máquina não tem PHP/Composer, use um container temporário para o
+`composer install` inicial:
+```bash
+docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd):/var/www/html" -w /var/www/html \
+  laravelsail/php84-composer:latest composer install --ignore-platform-reqs
+```
+Depois siga normalmente a partir do passo 2 (criar `.env`).
+
+## Deploy em produção
+
+Ver [docker/production/README.md](docker/production/README.md) — stack
+Nginx + PHP-FPM + PostgreSQL via `compose.prod.yaml`, com backups automáticos
+e instruções de deploy em VPS.

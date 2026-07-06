@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -15,7 +16,7 @@ class Event extends Model implements HasMedia
     use HasTranslations, InteractsWithMedia;
 
     protected $fillable = [
-        'title', 'subtitle', 'description', 'order', 'is_published',
+        'user_id', 'title', 'subtitle', 'description', 'order', 'is_published',
     ];
 
     public array $translatable = ['title', 'subtitle', 'description'];
@@ -33,9 +34,15 @@ class Event extends Model implements HasMedia
         return $query->where('is_published', true);
     }
 
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('image')->singleFile();
+        // Disco explícito: ver comentário equivalente em App\Models\Listing.
+        $this->addMediaCollection('image')->useDisk('public')->singleFile();
     }
 
     public function registerMediaConversions(?Media $media = null): void
