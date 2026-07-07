@@ -14,7 +14,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#0b0a08">
+    <meta name="theme-color" content="#fbf8f1">
     <title>@yield('title', config('app.name')) - {{ config('app.name') }}</title>
 
     <link rel="icon" href="{{ asset('images/logo.jpeg') }}" type="image/jpeg">
@@ -26,7 +26,7 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen bg-onyx-950 text-onyx-100 antialiased flex flex-col">
+<body class="flex min-h-screen flex-col text-onyx-900 antialiased">
     @include('public.partials.header', ['localeUrls' => $localeUrls])
 
     <main class="flex-1">
