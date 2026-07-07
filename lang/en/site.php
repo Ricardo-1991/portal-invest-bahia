@@ -39,6 +39,10 @@ return [
     ],
     'listing' => [
         'price' => 'Price',
+        'sale' => 'Sale',
+        'per_hectare' => 'Per hectare',
+        'area' => 'Area',
+        'area_unit' => 'ha',
         'region' => 'Region',
         'category' => 'Category',
         'gallery' => 'Gallery',

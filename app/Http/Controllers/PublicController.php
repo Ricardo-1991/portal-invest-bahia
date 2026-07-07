@@ -22,7 +22,8 @@ class PublicController extends Controller
 
     public function category(Request $request, string $locale, string $category): View|Response
     {
-        $query = Listing::published()->category($category);
+        // with('user'): o card horizontal exibe o WhatsApp do corretor.
+        $query = Listing::published()->category($category)->with('user');
 
         // Busca textual (em qualquer idioma) sobre título e descrição.
         if ($term = trim((string) $request->query('q'))) {

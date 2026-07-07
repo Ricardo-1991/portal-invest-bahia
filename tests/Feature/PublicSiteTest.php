@@ -33,6 +33,29 @@ class PublicSiteTest extends TestCase
         $this->get('/')->assertRedirect();
     }
 
+    public function test_horizontal_card_shows_area_price_per_hectare_and_whatsapp(): void
+    {
+        // Valores da referência: R$ 2.660.000 / 133 ha = R$ 20.000/ha.
+        $listing = $this->publishedListing(['price' => 2660000, 'area' => 133]);
+
+        $this->assertSame(20000.0, $listing->pricePerHectare());
+
+        $this->get('/pt/fazendas')
+            ->assertOk()
+            ->assertSee('133 ha')
+            ->assertSee('R$ 2.660.000,00')
+            ->assertSee('Hectare: R$ 20.000,00')
+            ->assertSee('wa.me/5573999998888', false);
+    }
+
+    public function test_price_per_hectare_is_null_without_area(): void
+    {
+        $listing = $this->publishedListing(['price' => 500000]);
+
+        $this->assertNull($listing->pricePerHectare());
+        $this->get('/pt/fazendas')->assertOk()->assertDontSee('Hectare:');
+    }
+
     public function test_category_page_renders_listing_in_selected_language(): void
     {
         $this->publishedListing();

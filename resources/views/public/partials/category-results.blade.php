@@ -9,9 +9,10 @@
         </a>
     </div>
 @else
-    <div class="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    {{-- Lista vertical de cards horizontais (1 por linha, referência chaozao) --}}
+    <div class="mt-10 space-y-6">
         @foreach ($listings as $listing)
-            @include('public.partials.listing-card', ['listing' => $listing])
+            @include('public.partials.listing-card-horizontal', ['listing' => $listing])
         @endforeach
     </div>
 

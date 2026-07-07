@@ -8,7 +8,6 @@
                      class="h-12 w-12 rounded-xl object-cover shadow-sm">
                 <div class="hidden leading-tight sm:block">
                     <span class="block font-display text-lg font-semibold text-onyx-950">Portal Invest Bahia</span>
-                    <span class="block text-xs uppercase tracking-[0.24em] text-ouro-700">Rural Real Estate</span>
                 </div>
             </a>
 

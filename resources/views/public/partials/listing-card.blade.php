@@ -17,10 +17,19 @@
     </div>
 
     <div class="flex flex-1 flex-col gap-4 p-5">
+        @php
+            $area = (float) $listing->area;
+            $areaFmt = $area > 0 ? number_format($area, fmod($area, 1) === 0.0 ? 0 : 1, ',', '.') : null;
+            $perHectare = $listing->pricePerHectare();
+        @endphp
         <div class="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-ouro-700">
             <span>{{ $listing->region ?: __('site.listing.on_request') }}</span>
             <span class="h-1 w-1 rounded-full bg-ouro-400"></span>
             <span>{{ __('site.nav.'.$listing->category) }}</span>
+            @if ($areaFmt)
+                <span class="h-1 w-1 rounded-full bg-ouro-400"></span>
+                <span>{{ $areaFmt }} {{ __('site.listing.area_unit') }}</span>
+            @endif
         </div>
 
         <div>
@@ -40,6 +49,11 @@
                         @lang('site.listing.on_request')
                     @endif
                 </span>
+                @if ($perHectare)
+                    <span class="mt-0.5 block text-xs text-onyx-500">
+                        @lang('site.listing.per_hectare'): R$ {{ number_format($perHectare, 2, ',', '.') }}
+                    </span>
+                @endif
             </div>
 
             <span class="shrink-0 rounded-full bg-onyx-950 px-4 py-2 text-sm font-semibold text-white transition group-hover:bg-ouro-700">

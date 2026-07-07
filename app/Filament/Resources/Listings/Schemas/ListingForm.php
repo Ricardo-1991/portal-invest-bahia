@@ -51,6 +51,12 @@ class ListingForm
                             ->numeric()
                             ->prefix('R$'),
 
+                        TextInput::make('area')
+                            ->label('Área (ha)')
+                            ->numeric()
+                            ->suffix('ha')
+                            ->helperText('Área da propriedade em hectares; habilita o preço por hectare no site.'),
+
                         // Dono do anúncio: o admin escolhe; o corretor recebe o seu id automaticamente.
                         Select::make('user_id')
                             ->label('Corretor responsável')

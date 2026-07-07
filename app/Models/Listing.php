@@ -45,7 +45,7 @@ class Listing extends Model implements HasMedia
     public const LOCALES = ['pt', 'en', 'es', 'it'];
 
     protected $fillable = [
-        'user_id', 'category', 'status', 'slug', 'region', 'price',
+        'user_id', 'category', 'status', 'slug', 'region', 'price', 'area',
         'title', 'subtitle', 'description',
     ];
 
@@ -56,7 +56,18 @@ class Listing extends Model implements HasMedia
     {
         return [
             'price' => 'decimal:2',
+            'area' => 'decimal:2',
         ];
+    }
+
+    /** Preço por hectare, quando preço e área estiverem preenchidos. */
+    public function pricePerHectare(): ?float
+    {
+        if ((float) $this->price > 0 && (float) $this->area > 0) {
+            return (float) $this->price / (float) $this->area;
+        }
+
+        return null;
     }
 
     public function user(): BelongsTo

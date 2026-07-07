@@ -18,6 +18,10 @@
     $whatsapp = preg_replace('/\D/', '', (string) $broker?->whatsapp);
     $emailTo = $broker?->email_public ?: $broker?->email;
     $subject = rawurlencode($listing->title);
+
+    $area = (float) $listing->area;
+    $areaFmt = $area > 0 ? number_format($area, fmod($area, 1) === 0.0 ? 0 : 1, ',', '.') : null;
+    $perHectare = $listing->pricePerHectare();
 @endphp
 
 @section('title', $listing->title)
@@ -62,7 +66,7 @@
                         <p class="mt-3 text-xl leading-relaxed text-onyx-600">{{ $listing->subtitle }}</p>
                     @endif
 
-                    <dl class="mt-8 grid gap-4 border-y border-linen-200 py-6 sm:grid-cols-3">
+                    <dl class="mt-8 grid gap-4 border-y border-linen-200 py-6 sm:grid-cols-2 xl:grid-cols-4">
                         <div>
                             <dt class="text-xs uppercase tracking-wide text-onyx-500">@lang('site.listing.category')</dt>
                             <dd class="mt-1 font-semibold text-onyx-950">{{ __('site.nav.'.$listing->category) }}</dd>
@@ -71,6 +75,12 @@
                             <dt class="text-xs uppercase tracking-wide text-onyx-500">@lang('site.listing.region')</dt>
                             <dd class="mt-1 font-semibold text-onyx-950">{{ $listing->region ?: __('site.listing.on_request') }}</dd>
                         </div>
+                        @if ($areaFmt)
+                            <div>
+                                <dt class="text-xs uppercase tracking-wide text-onyx-500">@lang('site.listing.area')</dt>
+                                <dd class="mt-1 font-semibold text-onyx-950">{{ $areaFmt }} {{ __('site.listing.area_unit') }}</dd>
+                            </div>
+                        @endif
                         <div>
                             <dt class="text-xs uppercase tracking-wide text-onyx-500">@lang('site.listing.price')</dt>
                             <dd class="mt-1 font-semibold text-ouro-700">
@@ -78,6 +88,11 @@
                                     R$ {{ number_format((float) $listing->price, 2, ',', '.') }}
                                 @else
                                     @lang('site.listing.on_request')
+                                @endif
+                                @if ($perHectare)
+                                    <span class="mt-0.5 block text-xs font-normal text-onyx-500">
+                                        @lang('site.listing.per_hectare'): R$ {{ number_format($perHectare, 2, ',', '.') }}
+                                    </span>
                                 @endif
                             </dd>
                         </div>
@@ -102,10 +117,19 @@
                                     @lang('site.listing.on_request')
                                 @endif
                             </strong>
+                            @if ($perHectare)
+                                <span class="mt-1 block text-sm text-onyx-500">
+                                    @lang('site.listing.per_hectare'): R$ {{ number_format($perHectare, 2, ',', '.') }}
+                                </span>
+                            @endif
                         </div>
                         <div class="mt-4 border-t border-white pt-4">
                             <span class="block text-xs uppercase tracking-wide text-onyx-500">@lang('site.listing.region')</span>
                             <span class="mt-1 block font-semibold text-onyx-950">{{ $listing->region ?: __('site.listing.on_request') }}</span>
+                            @if ($areaFmt)
+                                <span class="mt-2 block text-xs uppercase tracking-wide text-onyx-500">@lang('site.listing.area')</span>
+                                <span class="mt-1 block font-semibold text-onyx-950">{{ $areaFmt }} {{ __('site.listing.area_unit') }}</span>
+                            @endif
                         </div>
                     </div>
 

@@ -55,6 +55,12 @@ class ListingsTable
                     ->label('Região')
                     ->toggleable(),
 
+                TextColumn::make('area')
+                    ->label('Área (ha)')
+                    ->numeric(decimalPlaces: 0)
+                    ->suffix(' ha')
+                    ->toggleable(),
+
                 TextColumn::make('user.name')
                     ->label('Corretor')
                     ->toggleable(),
