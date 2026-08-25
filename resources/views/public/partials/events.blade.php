@@ -17,7 +17,7 @@
             <div class="relative h-80 select-none" style="perspective: 1200px;">
                 @foreach ($events as $index => $event)
                     @php
-                        $image = $event->imageUrl('thumb') ?: asset('images/property-placeholder.png');
+                        $image = $event->imageUrl('thumb') ?: asset('images/property-placeholder.webp');
                         $data = [
                             'title' => $event->title,
                             'subtitle' => $event->subtitle,
@@ -28,7 +28,7 @@
                     <button type="button"
                             :style="cardStyle({{ $index }})"
                             @click="onCardClick({{ $index }}, () => modal = {{ Illuminate\Support\Js::from($data) }})"
-                            class="coverflow-card absolute left-1/2 top-0 w-72 cursor-grab overflow-hidden rounded-[2rem] border border-linen-200 bg-white text-left shadow-[0_16px_48px_-20px_rgba(43,36,24,0.28)] transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:cursor-grabbing">
+                            class="coverflow-card absolute left-1/2 top-0 w-72 cursor-grab overflow-hidden rounded-panel border border-linen-200 bg-white text-left shadow-panel transition-[transform,opacity] duration-500 ease-pib active:cursor-grabbing">
                         <div class="aspect-[16/10] w-full overflow-hidden bg-linen-100">
                             <img src="{{ $image }}" alt="{{ $event->title }}" loading="lazy" draggable="false"
                                  class="pointer-events-none h-full w-full object-cover">
@@ -45,10 +45,10 @@
             </div>
 
             @if ($events->count() > 1)
-                <button type="button" @click="prev(); scheduleResume()" aria-label="Anterior"
-                        class="absolute left-1 top-1/2 z-20 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-linen-300 bg-white/90 text-onyx-800 shadow-sm transition hover:border-ouro-500 hover:text-ouro-700">&lsaquo;</button>
-                <button type="button" @click="next(); scheduleResume()" aria-label="Próximo"
-                        class="absolute right-1 top-1/2 z-20 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-linen-300 bg-white/90 text-onyx-800 shadow-sm transition hover:border-ouro-500 hover:text-ouro-700">&rsaquo;</button>
+                <button type="button" @click="prev(); scheduleResume()" aria-label="@lang('site.a11y.prev')"
+                        class="absolute left-1 top-1/2 z-20 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-pill border border-linen-300 bg-white/90 text-onyx-800 shadow-card transition duration-200 ease-pib hover:border-ouro-500 hover:text-ouro-700 active:scale-95">&lsaquo;</button>
+                <button type="button" @click="next(); scheduleResume()" aria-label="@lang('site.a11y.next')"
+                        class="absolute right-1 top-1/2 z-20 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-pill border border-linen-300 bg-white/90 text-onyx-800 shadow-card transition duration-200 ease-pib hover:border-ouro-500 hover:text-ouro-700 active:scale-95">&rsaquo;</button>
             @endif
         </div>
 
@@ -56,9 +56,9 @@
         <div x-show="modal" x-cloak @keydown.escape.window="modal = null"
              class="fixed inset-0 z-50 flex items-center justify-center bg-onyx-950/70 p-4 backdrop-blur-sm">
             <div @click.outside="modal = null"
-                 class="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-[2rem] border border-linen-200 bg-white shadow-2xl">
+                 class="modal-tall w-full max-w-2xl overflow-y-auto rounded-panel border border-linen-200 bg-white shadow-2xl">
                 <template x-if="modal && modal.image">
-                    <img :src="modal.image" class="h-64 w-full object-cover" alt="">
+                    <img :src="modal.image" loading="lazy" decoding="async" class="h-64 w-full object-cover" alt="">
                 </template>
                 <div class="p-6 md:p-8">
                     <div class="flex items-start justify-between gap-4">
@@ -66,8 +66,8 @@
                             <span class="text-xs font-semibold uppercase tracking-[0.2em] text-ouro-700">@lang('site.events.eyebrow')</span>
                             <h3 class="mt-3 font-display text-3xl leading-tight text-onyx-950" x-text="modal && modal.title"></h3>
                         </div>
-                        <button type="button" @click="modal = null" aria-label="Fechar"
-                                class="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-linen-200 text-xl text-onyx-700 transition hover:border-ouro-500 hover:text-ouro-700">
+                        <button type="button" @click="modal = null" aria-label="@lang('site.a11y.close')"
+                                class="grid h-10 w-10 shrink-0 place-items-center rounded-pill border border-linen-200 text-xl text-onyx-700 transition duration-200 ease-pib hover:border-ouro-500 hover:text-ouro-700 active:scale-95">
                             &times;
                         </button>
                     </div>

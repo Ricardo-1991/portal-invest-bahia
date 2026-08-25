@@ -16,6 +16,14 @@ return [
         'servico' => 'Serviços',
     ],
 
+    // Canais de contato exibidos na página pública de Contatos.
+    // Deixe whatsapp/phone vazios para simplesmente não exibir aquele canal.
+    'contact' => [
+        'email' => env('PIB_CONTACT_EMAIL', 'admin@pib.com.br'),
+        'whatsapp' => env('PIB_CONTACT_WHATSAPP'),
+        'phone' => env('PIB_CONTACT_PHONE'),
+    ],
+
     // Nota: TRUSTED_PROXIES é lido diretamente via env() em bootstrap/app.php
     // (config() ainda não está disponível nesse estágio do bootstrap).
 

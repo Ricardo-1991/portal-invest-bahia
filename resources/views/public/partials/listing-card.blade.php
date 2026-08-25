@@ -1,62 +1,45 @@
 @php $l = app()->getLocale(); @endphp
 
+{{-- Card vertical — usado no grid de destaques da home. --}}
 <a href="{{ route('public.listing', [$l, $listing->slug]) }}"
-   class="group flex h-full flex-col overflow-hidden rounded-[2rem] border border-linen-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl">
+   class="group flex h-full w-full flex-col overflow-hidden rounded-panel border border-linen-200 bg-white shadow-card transition duration-500 ease-pib hover:-translate-y-1 hover:shadow-card-hover">
     <div class="relative aspect-[16/11] w-full overflow-hidden bg-linen-100">
-        @if ($url = $listing->mainImageUrl('thumb'))
-            <img src="{{ $url }}" alt="{{ $listing->title }}" loading="lazy"
-                 class="h-full w-full object-cover transition duration-700 group-hover:scale-105">
-        @else
-            <img src="{{ asset('images/property-placeholder.png') }}" alt="" loading="lazy"
-                 class="h-full w-full object-cover transition duration-700 group-hover:scale-105">
-        @endif
+        <img src="{{ $listing->mainImageUrl('thumb') ?: asset('images/property-placeholder.webp') }}"
+             alt="{{ $listing->mainImageUrl('thumb') ? $listing->title : '' }}"
+             loading="lazy" decoding="async"
+             class="size-full object-cover transition-transform duration-700 ease-pib group-hover:scale-105">
 
-        <div class="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-onyx-800 shadow-sm">
+        {{-- Gradiente na base da foto: segura o contraste do selo em imagens claras. --}}
+        <div class="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-onyx-950/25 to-transparent"></div>
+
+        <span class="absolute left-4 top-4 rounded-pill bg-white/90 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-onyx-800 shadow-sm backdrop-blur">
             {{ __('site.nav.'.$listing->category) }}
-        </div>
+        </span>
     </div>
 
-    <div class="flex flex-1 flex-col gap-4 p-5">
-        @php
-            $area = (float) $listing->area;
-            $areaFmt = $area > 0 ? number_format($area, fmod($area, 1) === 0.0 ? 0 : 1, ',', '.') : null;
-            $perHectare = $listing->pricePerHectare();
-        @endphp
+    <div class="flex flex-1 flex-col gap-4 p-6">
         <div class="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-ouro-700">
             <span>{{ $listing->region ?: __('site.listing.on_request') }}</span>
-            <span class="h-1 w-1 rounded-full bg-ouro-400"></span>
-            <span>{{ __('site.nav.'.$listing->category) }}</span>
-            @if ($areaFmt)
-                <span class="h-1 w-1 rounded-full bg-ouro-400"></span>
-                <span>{{ $areaFmt }} {{ __('site.listing.area_unit') }}</span>
+            @if ((float) $listing->area > 0)
+                <span class="h-1 w-1 rounded-pill bg-ouro-400"></span>
+                <span class="tabular"><x-listing-area :listing="$listing" /></span>
             @endif
         </div>
 
         <div>
-            <h3 class="line-clamp-2 font-display text-2xl leading-tight text-onyx-950">{{ $listing->title }}</h3>
-        @if ($listing->subtitle)
-            <p class="mt-2 line-clamp-2 text-sm leading-relaxed text-onyx-600">{{ $listing->subtitle }}</p>
-        @endif
+            <h3 class="line-clamp-2 font-display text-2xl leading-tight text-onyx-950 transition-colors duration-300 ease-pib group-hover:text-ouro-700">
+                {{ $listing->title }}
+            </h3>
+            @if ($listing->subtitle)
+                <p class="mt-2 line-clamp-2 text-sm leading-relaxed text-onyx-600">{{ $listing->subtitle }}</p>
+            @endif
         </div>
 
-        <div class="mt-auto flex items-end justify-between gap-4 border-t border-linen-200 pt-4">
-            <div>
-                <span class="block text-xs uppercase tracking-wide text-onyx-500">@lang('site.listing.price')</span>
-                <span class="block text-lg font-semibold leading-tight text-ouro-700">
-                    @if ($listing->price)
-                        R$ {{ number_format((float) $listing->price, 2, ',', '.') }}
-                    @else
-                        @lang('site.listing.on_request')
-                    @endif
-                </span>
-                @if ($perHectare)
-                    <span class="mt-0.5 block text-xs text-onyx-500">
-                        @lang('site.listing.per_hectare'): R$ {{ number_format($perHectare, 2, ',', '.') }}
-                    </span>
-                @endif
-            </div>
+        {{-- mt-auto fixa o rodapé na base: os CTAs alinham entre cards de alturas diferentes. --}}
+        <div class="mt-auto flex items-end justify-between gap-4 border-t border-linen-200 pt-5">
+            <x-listing-price :listing="$listing" size="sm" />
 
-            <span class="shrink-0 rounded-full bg-onyx-950 px-4 py-2 text-sm font-semibold text-white transition group-hover:bg-ouro-700">
+            <span class="shrink-0 rounded-pill bg-onyx-950 px-4 py-2 text-sm font-semibold text-white transition duration-300 ease-pib group-hover:bg-ouro-700">
                 @lang('site.cta.details')
             </span>
         </div>

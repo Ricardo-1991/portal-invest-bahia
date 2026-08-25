@@ -155,3 +155,52 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && 'Intersect
 } else {
     document.querySelectorAll('[data-reveal]').forEach((el) => el.classList.add('is-visible'));
 }
+
+// Vídeo de fundo do hero.
+//
+// O markup sai do servidor SEM `autoplay` de propósito: quem decide dar play é
+// este bloco. Isso resolve duas coisas de uma vez —
+//   1. `prefers-reduced-motion: reduce` nunca chega a ver movimento algum;
+//   2. se o MP4 ainda não existe em public/videos/, o `play()` falha em silêncio
+//      e o `poster` continua na tela como imagem estática.
+// Também pausamos quando o hero sai de vista, para não gastar bateria à toa.
+{
+    const heroVideos = document.querySelectorAll('video[data-hero-video]');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    if (heroVideos.length) {
+        const sync = () => {
+            heroVideos.forEach((video) => {
+                if (reduceMotion.matches) {
+                    video.pause();
+                    video.currentTime = 0;
+                } else {
+                    // Rejeita quando o arquivo não existe ou o navegador bloqueia: o poster fica.
+                    video.play().catch(() => {});
+                }
+            });
+        };
+
+        sync();
+        reduceMotion.addEventListener('change', sync);
+
+        if ('IntersectionObserver' in window) {
+            const visibility = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((entry) => {
+                        if (reduceMotion.matches) return;
+
+                        if (entry.isIntersecting) {
+                            entry.target.play().catch(() => {});
+                        } else {
+                            entry.target.pause();
+                        }
+                    });
+                },
+                { threshold: 0.1 },
+            );
+
+            heroVideos.forEach((video) => visibility.observe(video));
+        }
+    }
+}

@@ -76,6 +76,16 @@ return [
         'card_title' => 'Hable con nuestro equipo',
         'card_text' => 'Reciba orientación para encontrar oportunidades, publicar activos o iniciar una conversación con el corredor responsable.',
     ],
+    'meta' => [
+        'description' => 'Haciendas, activos productivos y servicios rurales seleccionados en Bahía. Curaduría local para inversores brasileños e internacionales.',
+    ],
+    'a11y' => [
+        'skip_to_content' => 'Saltar al contenido',
+        'menu' => 'Abrir menú',
+        'prev' => 'Anterior',
+        'next' => 'Siguiente',
+        'close' => 'Cerrar',
+    ],
     'footer' => [
         'tagline' => 'Haciendas, activos y servicios rurales en Bahía.',
         'rights' => 'Todos los derechos reservados.',

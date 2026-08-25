@@ -1,61 +1,75 @@
-{{-- Paginação customizada para o tema onyx/ouro do PIB (baseada na view "tailwind" do Laravel). --}}
+{{-- Paginação do PIB (baseada na view "tailwind" do Laravel).
+     Paleta CLARA: este bloco é renderizado sobre linen-50/branco, na página de categoria. --}}
 @if ($paginator->hasPages())
-    <nav role="navigation" aria-label="{{ __('Pagination Navigation') }}" class="flex items-center justify-between gap-4">
+    @php
+        $strong = fn ($value) => '<span class="font-semibold text-onyx-900 tabular">'.e($value).'</span>';
+
+        $boxBase = 'grid h-10 w-10 place-items-center rounded-card border text-sm transition duration-200 ease-pib';
+        $boxIdle = $boxBase.' border-linen-300 bg-white text-onyx-700 hover:border-ouro-500 hover:text-ouro-700 active:scale-95';
+        $boxOff = $boxBase.' border-linen-200 bg-linen-100/60 text-onyx-400';
+
+        $pillBase = 'rounded-pill border px-4 py-2 text-sm font-semibold transition duration-200 ease-pib';
+        $pillIdle = $pillBase.' border-linen-300 bg-white text-onyx-800 hover:border-ouro-500 hover:text-ouro-700 active:scale-95';
+        $pillOff = $pillBase.' border-linen-200 bg-linen-100/60 text-onyx-400';
+    @endphp
+
+    <nav role="navigation" aria-label="{{ __('pagination.nav_label') }}" class="mt-10 flex items-center justify-between gap-4">
+        {{-- Mobile: só anterior/próximo --}}
         <div class="flex-1 sm:hidden">
             @if ($paginator->onFirstPage())
-                <span class="rounded-lg border border-onyx-700 px-4 py-2 text-sm text-onyx-500">{!! __('pagination.previous') !!}</span>
+                <span class="{{ $pillOff }}">{!! __('pagination.previous') !!}</span>
             @else
-                <a href="{{ $paginator->previousPageUrl() }}" rel="prev" class="rounded-lg border border-onyx-700 px-4 py-2 text-sm text-onyx-100 transition hover:border-ouro-500 hover:text-ouro-400">{!! __('pagination.previous') !!}</a>
+                <a href="{{ $paginator->previousPageUrl() }}" rel="prev" class="{{ $pillIdle }}">{!! __('pagination.previous') !!}</a>
             @endif
         </div>
         <div class="flex-1 text-right sm:hidden">
             @if ($paginator->hasMorePages())
-                <a href="{{ $paginator->nextPageUrl() }}" rel="next" class="rounded-lg border border-onyx-700 px-4 py-2 text-sm text-onyx-100 transition hover:border-ouro-500 hover:text-ouro-400">{!! __('pagination.next') !!}</a>
+                <a href="{{ $paginator->nextPageUrl() }}" rel="next" class="{{ $pillIdle }}">{!! __('pagination.next') !!}</a>
             @else
-                <span class="rounded-lg border border-onyx-700 px-4 py-2 text-sm text-onyx-500">{!! __('pagination.next') !!}</span>
+                <span class="{{ $pillOff }}">{!! __('pagination.next') !!}</span>
             @endif
         </div>
 
+        {{-- Desktop: contador + números --}}
         <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-            <p class="text-sm text-onyx-400">
-                {!! __('Showing') !!}
-                <span class="font-medium text-onyx-100">{{ $paginator->firstItem() ?? $paginator->count() }}</span>
-                {!! __('to') !!}
-                <span class="font-medium text-onyx-100">{{ $paginator->lastItem() ?? $paginator->count() }}</span>
-                {!! __('of') !!}
-                <span class="font-medium text-onyx-100">{{ $paginator->total() }}</span>
-                {!! __('results') !!}
+            <p class="text-sm text-onyx-600">
+                {!! __('pagination.showing', [
+                    'first' => $strong($paginator->firstItem() ?? $paginator->count()),
+                    'last' => $strong($paginator->lastItem() ?? $paginator->count()),
+                    'total' => $strong($paginator->total()),
+                ]) !!}
             </p>
 
-            <div class="flex items-center gap-1">
+            <div class="flex items-center gap-1.5">
                 @if ($paginator->onFirstPage())
-                    <span class="grid h-9 w-9 place-items-center rounded-lg border border-onyx-700 text-onyx-600" aria-hidden="true">&lsaquo;</span>
+                    <span class="{{ $boxOff }}" aria-hidden="true">&lsaquo;</span>
                 @else
-                    <a href="{{ $paginator->previousPageUrl() }}" rel="prev" aria-label="{{ __('pagination.previous') }}"
-                       class="grid h-9 w-9 place-items-center rounded-lg border border-onyx-700 text-onyx-100 transition hover:border-ouro-500 hover:text-ouro-400">&lsaquo;</a>
+                    <a href="{{ $paginator->previousPageUrl() }}" rel="prev" aria-label="{{ __('site.a11y.prev') }}"
+                       class="{{ $boxIdle }}">&lsaquo;</a>
                 @endif
 
                 @foreach ($elements as $element)
                     @if (is_string($element))
-                        <span class="grid h-9 w-9 place-items-center text-onyx-500">{{ $element }}</span>
+                        <span class="grid h-10 w-10 place-items-center text-sm text-onyx-400">{{ $element }}</span>
                     @endif
 
                     @if (is_array($element))
                         @foreach ($element as $page => $url)
                             @if ($page == $paginator->currentPage())
-                                <span aria-current="page" class="grid h-9 w-9 place-items-center rounded-lg bg-ouro-400 font-semibold text-onyx-950">{{ $page }}</span>
+                                <span aria-current="page"
+                                      class="grid h-10 w-10 place-items-center rounded-card border border-ouro-500 bg-ouro-400 text-sm font-semibold text-onyx-950 tabular">{{ $page }}</span>
                             @else
-                                <a href="{{ $url }}" class="grid h-9 w-9 place-items-center rounded-lg text-onyx-100 transition hover:bg-onyx-800 hover:text-ouro-400">{{ $page }}</a>
+                                <a href="{{ $url }}" class="{{ $boxIdle }} tabular">{{ $page }}</a>
                             @endif
                         @endforeach
                     @endif
                 @endforeach
 
                 @if ($paginator->hasMorePages())
-                    <a href="{{ $paginator->nextPageUrl() }}" rel="next" aria-label="{{ __('pagination.next') }}"
-                       class="grid h-9 w-9 place-items-center rounded-lg border border-onyx-700 text-onyx-100 transition hover:border-ouro-500 hover:text-ouro-400">&rsaquo;</a>
+                    <a href="{{ $paginator->nextPageUrl() }}" rel="next" aria-label="{{ __('site.a11y.next') }}"
+                       class="{{ $boxIdle }}">&rsaquo;</a>
                 @else
-                    <span class="grid h-9 w-9 place-items-center rounded-lg border border-onyx-700 text-onyx-600" aria-hidden="true">&rsaquo;</span>
+                    <span class="{{ $boxOff }}" aria-hidden="true">&rsaquo;</span>
                 @endif
             </div>
         </div>

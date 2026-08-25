@@ -76,6 +76,16 @@ return [
         'card_title' => 'Parla con il nostro team',
         'card_text' => 'Ricevi orientamento per trovare opportunità, pubblicare beni o iniziare una conversazione con il mediatore responsabile.',
     ],
+    'meta' => [
+        'description' => 'Tenute, beni produttivi e servizi rurali selezionati a Bahia. Curatela locale per investitori brasiliani e internazionali.',
+    ],
+    'a11y' => [
+        'skip_to_content' => 'Vai al contenuto',
+        'menu' => 'Apri menu',
+        'prev' => 'Precedente',
+        'next' => 'Successivo',
+        'close' => 'Chiudi',
+    ],
     'footer' => [
         'tagline' => 'Tenute, beni e servizi rurali a Bahia.',
         'rights' => 'Tutti i diritti riservati.',

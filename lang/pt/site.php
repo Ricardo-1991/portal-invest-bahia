@@ -76,6 +76,16 @@ return [
         'card_title' => 'Converse com nossa equipe',
         'card_text' => 'Receba orientação para encontrar oportunidades, divulgar ativos ou iniciar uma conversa com o corretor responsável.',
     ],
+    'meta' => [
+        'description' => 'Fazendas, ativos produtivos e serviços rurais selecionados na Bahia. Curadoria local para investidores brasileiros e internacionais.',
+    ],
+    'a11y' => [
+        'skip_to_content' => 'Pular para o conteúdo',
+        'menu' => 'Abrir menu',
+        'prev' => 'Anterior',
+        'next' => 'Próximo',
+        'close' => 'Fechar',
+    ],
     'footer' => [
         'tagline' => 'Fazendas, ativos e serviços rurais na Bahia.',
         'rights' => 'Todos os direitos reservados.',

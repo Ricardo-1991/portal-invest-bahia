@@ -76,6 +76,16 @@ return [
         'card_title' => 'Talk to our team',
         'card_text' => 'Receive guidance to find opportunities, publish assets or start a conversation with the responsible broker.',
     ],
+    'meta' => [
+        'description' => 'Selected farms, productive assets and rural services in Bahia. Local expertise for Brazilian and international investors.',
+    ],
+    'a11y' => [
+        'skip_to_content' => 'Skip to content',
+        'menu' => 'Open menu',
+        'prev' => 'Previous',
+        'next' => 'Next',
+        'close' => 'Close',
+    ],
     'footer' => [
         'tagline' => 'Farms, assets and rural services in Bahia.',
         'rights' => 'All rights reserved.',
