@@ -22,10 +22,20 @@ return [
         'view_portfolio' => 'Vedi opportunità',
     ],
     'search' => [
+        'title' => 'Ricerca rapida',
         'home_placeholder' => 'Cerca per tenuta, regione o bene...',
         'placeholder' => 'Cerca per parola chiave...',
+        'category' => 'Tipo di opportunità',
         'region_all' => 'Tutte le regioni',
+        'max_price' => 'Prezzo massimo',
+        'min_area' => 'Superficie minima',
         'button' => 'Cerca',
+    ],
+    'countries' => [
+        'br' => 'Brasile',
+        'us' => 'Stati Uniti',
+        'es' => 'Spagna',
+        'it' => 'Italia',
     ],
     'categories' => [
         'fazenda' => 'Proprietà rurali selezionate per produzione, tempo libero e investimento patrimoniale.',

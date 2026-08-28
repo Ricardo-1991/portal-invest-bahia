@@ -14,7 +14,16 @@
 @section('description', __('site.categories.'.$category))
 
 @section('content')
-    <div x-data="categorySearch(@js(route('public.'.$category, $l)), @js($filters))">
+    <div x-data="categorySearch(
+        @js(route('public.'.$category, $l)),
+        @js($filters),
+        @js([
+            'fazenda' => route('public.fazenda', $l),
+            'ativo' => route('public.ativo', $l),
+            'servico' => route('public.servico', $l),
+        ]),
+        @js($regionsByCategory)
+    )">
         {{-- Faixa de categoria inspirada no cabeçalho compacto da referência. --}}
         <x-media-hero :poster="$categoryImages[$category]" eager media-class="opacity-20 object-[center_58%]" class="border-b border-linen-300 bg-linen-100">
             <x-slot:overlay>
@@ -40,28 +49,7 @@
         </x-media-hero>
 
         <section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-12">
-            <form method="GET" @submit.prevent="search()"
-                  class="grid gap-4 rounded-panel border border-linen-200 bg-white p-5 shadow-panel md:grid-cols-[1fr_280px_auto] md:items-end lg:p-7">
-                <div>
-                    <label for="filtro-q" class="mb-2 block text-xs font-semibold text-onyx-600">@lang('site.search.placeholder')</label>
-                    <input id="filtro-q" type="text" name="q" x-model="q" @input.debounce.400ms="search()"
-                           placeholder="@lang('site.search.home_placeholder')"
-                           class="min-h-13 w-full rounded-card border border-linen-300 bg-linen-50 px-4 text-onyx-900 shadow-inner transition duration-200 placeholder:text-onyx-400 focus:border-ouro-500 focus:outline-none focus:ring-2 focus:ring-ouro-200">
-                </div>
-
-                <div>
-                    <label for="filtro-regiao" class="mb-2 block text-xs font-semibold text-onyx-600">@lang('site.listing.region')</label>
-                    <select id="filtro-regiao" name="region" x-model="region" @change="search()"
-                            class="min-h-13 w-full rounded-card border border-linen-300 bg-linen-50 px-4 text-onyx-900 shadow-inner transition duration-200 focus:border-ouro-500 focus:outline-none focus:ring-2 focus:ring-ouro-200">
-                        <option value="">@lang('site.search.region_all')</option>
-                        @foreach ($regions as $region)
-                            <option value="{{ $region }}">{{ $region }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <button type="submit" class="min-h-13 rounded-card bg-onyx-950 px-8 py-3 font-semibold text-white transition duration-300 hover:bg-ouro-600 active:scale-[0.98]">@lang('site.search.button')</button>
-            </form>
+            @include('public.partials.listing-filters', ['filterMode' => 'category'])
 
             <div id="category-results" class="mt-9 transition-opacity duration-300 ease-pib" :class="loading && 'opacity-50'">
                 @include('public.partials.category-results')

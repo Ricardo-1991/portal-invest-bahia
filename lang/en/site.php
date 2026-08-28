@@ -22,10 +22,20 @@ return [
         'view_portfolio' => 'View opportunities',
     ],
     'search' => [
+        'title' => 'Quick search',
         'home_placeholder' => 'Search by farm, region or asset...',
         'placeholder' => 'Search by keyword...',
+        'category' => 'Opportunity type',
         'region_all' => 'All regions',
+        'max_price' => 'Maximum price',
+        'min_area' => 'Minimum area',
         'button' => 'Search',
+    ],
+    'countries' => [
+        'br' => 'Brazil',
+        'us' => 'United States',
+        'es' => 'Spain',
+        'it' => 'Italy',
     ],
     'categories' => [
         'fazenda' => 'Selected rural properties for production, leisure and long-term investment.',

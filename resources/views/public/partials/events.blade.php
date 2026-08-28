@@ -31,7 +31,7 @@
                             class="coverflow-card absolute left-1/2 top-0 w-72 cursor-grab overflow-hidden rounded-panel border border-linen-200 bg-white text-left shadow-panel transition-[transform,opacity] duration-500 ease-pib active:cursor-grabbing">
                         <div class="aspect-[16/10] w-full overflow-hidden bg-linen-100">
                             <img src="{{ $image }}" alt="{{ $event->title }}" loading="lazy" draggable="false"
-                                 class="pointer-events-none h-full w-full object-cover">
+                                 class="pointer-events-none h-full w-full object-contain p-1">
                         </div>
                         <div class="p-5">
                             <span class="text-[11px] font-semibold uppercase tracking-[0.2em] text-ouro-700">@lang('site.events.eyebrow')</span>
@@ -58,7 +58,7 @@
             <div @click.outside="modal = null"
                  class="modal-tall w-full max-w-2xl overflow-y-auto rounded-panel border border-linen-200 bg-white shadow-2xl">
                 <template x-if="modal && modal.image">
-                    <img :src="modal.image" loading="lazy" decoding="async" class="h-64 w-full object-cover" alt="">
+                    <img :src="modal.image" loading="lazy" decoding="async" class="h-64 w-full bg-linen-100 object-contain p-2" alt="">
                 </template>
                 <div class="p-6 md:p-8">
                     <div class="flex items-start justify-between gap-4">

@@ -15,7 +15,7 @@
     <a href="{{ $detailUrl }}" class="relative block overflow-hidden bg-linen-100" tabindex="-1" aria-hidden="true">
         <img src="{{ $listing->mainImageUrl('thumb') ?: asset('images/property-placeholder.webp') }}"
              alt="" loading="lazy" decoding="async"
-             class="aspect-[4/3] size-full object-cover transition-transform duration-700 ease-pib group-hover:scale-105 md:aspect-auto md:min-h-[280px]">
+             class="aspect-[4/3] size-full object-contain p-1 transition-opacity duration-300 ease-pib group-hover:opacity-95 md:aspect-auto md:min-h-[280px]">
     </a>
 
     <div class="flex flex-col gap-3 p-6 md:p-7">

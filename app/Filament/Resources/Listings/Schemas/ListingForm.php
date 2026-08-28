@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Listings\Schemas;
 
 use App\Filament\Support\LocaleTabs;
-use App\Models\Listing;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
@@ -49,11 +48,23 @@ class ListingForm
                         TextInput::make('price')
                             ->label('Preço (R$)')
                             ->numeric()
+                            ->minValue(0)
+                            ->maxValue('9999999999999.99')
+                            ->validationMessages([
+                                'min' => 'O preço não pode ser negativo.',
+                                'max' => 'O preço não pode ser maior que R$ 9.999.999.999.999,99.',
+                            ])
                             ->prefix('R$'),
 
                         TextInput::make('area')
                             ->label('Área (ha)')
                             ->numeric()
+                            ->minValue(0)
+                            ->maxValue('9999999999.99')
+                            ->validationMessages([
+                                'min' => 'A área não pode ser negativa.',
+                                'max' => 'A área não pode ser maior que 9.999.999.999,99 hectares.',
+                            ])
                             ->suffix('ha')
                             ->helperText('Área da propriedade em hectares; habilita o preço por hectare no site.'),
 

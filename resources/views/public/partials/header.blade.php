@@ -15,7 +15,6 @@
 
     $contact = config('pib.contact');
     $phone = $contact['phone'] ?? null;
-    $email = $contact['email'] ?? null;
 @endphp
 
 <header x-data="{ open: false }" class="site-header sticky top-0 z-30 border-b border-linen-200 bg-white/95 backdrop-blur">
@@ -40,14 +39,6 @@
                         <span><span class="block text-[11px] text-onyx-500">@lang('site.contact.phone')</span><strong class="block font-semibold text-onyx-800 tabular">{{ $phone }}</strong></span>
                     </a>
                 @endif
-                @if ($email)
-                    <a href="mailto:{{ $email }}" class="group flex items-center gap-3 text-sm">
-                        <span class="grid h-9 w-9 place-items-center rounded-pill bg-ouro-200/50 text-ouro-700 transition group-hover:bg-ouro-500 group-hover:text-onyx-950">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/></svg>
-                        </span>
-                        <span><span class="block text-[11px] text-onyx-500">@lang('site.contact.email')</span><strong class="block font-semibold text-onyx-800">{{ $email }}</strong></span>
-                    </a>
-                @endif
                 <a href="{{ route('public.contatos', $l) }}"
                    class="rounded-card bg-onyx-950 px-5 py-3 text-sm font-semibold text-white shadow-sm transition duration-200 ease-pib hover:bg-ouro-600 active:scale-[0.98]">
                     @lang('site.cta.contact_broker')
@@ -55,19 +46,7 @@
             </div>
 
             <div class="flex items-center gap-2 lg:hidden">
-                <div x-data="{ langOpen: false }" class="relative">
-                    <button @click="langOpen = !langOpen" :aria-expanded="langOpen" aria-haspopup="true"
-                            class="flex items-center gap-1 rounded-card border border-linen-300 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-wide text-onyx-700 transition hover:border-ouro-500 hover:text-ouro-700 active:scale-95">
-                        {{ $l }}
-                        <svg class="h-4 w-4 transition-transform duration-200" :class="langOpen && 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                    </button>
-                    <div x-show="langOpen" @click.outside="langOpen = false" @keydown.escape.window="langOpen = false" x-cloak
-                         class="absolute right-0 z-20 mt-2 w-44 overflow-hidden rounded-card border border-linen-200 bg-white shadow-panel">
-                        @foreach ($localeUrls as $code => $url)
-                            <a href="{{ $url }}" class="block px-4 py-2.5 text-sm text-onyx-700 transition hover:bg-linen-100 hover:text-ouro-700 {{ $code === $l ? 'font-semibold text-ouro-700' : '' }}">{{ config('pib.locales')[$code] }}</a>
-                        @endforeach
-                    </div>
-                </div>
+                <x-locale-flags :locale-urls="$localeUrls" />
                 <button @click="open = !open"
                         :aria-expanded="open"
                         aria-controls="nav-mobile"
@@ -96,19 +75,7 @@
                     @endforeach
                 </nav>
 
-                <div x-data="{ langOpen: false }" class="relative">
-                    <button @click="langOpen = !langOpen" :aria-expanded="langOpen" aria-haspopup="true"
-                            class="flex items-center gap-2 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-onyx-600 transition hover:text-ouro-700">
-                        {{ config('pib.locales')[$l] }}
-                        <svg class="h-4 w-4 transition-transform duration-200" :class="langOpen && 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                    </button>
-                    <div x-show="langOpen" @click.outside="langOpen = false" @keydown.escape.window="langOpen = false" x-cloak
-                         class="absolute right-0 z-20 mt-1 w-44 overflow-hidden rounded-card border border-linen-200 bg-white shadow-panel">
-                        @foreach ($localeUrls as $code => $url)
-                            <a href="{{ $url }}" class="block px-4 py-2.5 text-sm text-onyx-700 transition hover:bg-linen-100 hover:text-ouro-700 {{ $code === $l ? 'font-semibold text-ouro-700' : '' }}">{{ config('pib.locales')[$code] }}</a>
-                        @endforeach
-                    </div>
-                </div>
+                <x-locale-flags :locale-urls="$localeUrls" />
             </div>
 
             <nav id="nav-mobile" x-show="open" x-cloak

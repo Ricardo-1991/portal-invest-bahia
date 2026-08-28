@@ -12,59 +12,26 @@
 @section('title', $page->getTranslation('title', $l, false) ?: config('app.name'))
 
 @section('content')
-    {{-- Hero com vídeo de fundo. Sem o MP4 em public/videos/, o poster assume. --}}
+    {{-- Hero limpo: o vídeo vem do Filament; sem upload, permanece o poster atual. --}}
     <x-media-hero poster="images/hero-rural-bahia.png"
-                  video="videos/hero.mp4"
+                  :video-url="$page->heroVideoUrl()"
+                  video-fit="contain"
                   eager
-                  class="flex hero-tall items-center">
+                  class="home-video-hero border-b border-linen-200 bg-onyx-950">
         <x-slot:overlay>
-            <div class="absolute inset-0 bg-gradient-to-r from-onyx-950/85 via-onyx-950/50 to-onyx-950/15"></div>
-            <div class="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-linen-50 to-transparent"></div>
+            <div class="absolute inset-0 bg-onyx-950/10"></div>
+            <div class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-onyx-950/25 to-transparent"></div>
         </x-slot:overlay>
-
-        <div class="mx-auto w-full max-w-7xl px-4 py-20 sm:px-6 md:py-28 lg:px-8">
-            <div class="max-w-3xl">
-                <span data-reveal
-                      class="inline-flex rounded-pill border border-white/25 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-ouro-200 backdrop-blur">
-                    @lang('site.hero.eyebrow')
-                </span>
-
-                <h1 data-reveal style="--reveal-delay: 90ms"
-                    class="mt-6 max-w-2xl font-display text-4xl font-medium leading-[1.08] tracking-tight text-white md:text-6xl">
-                    @lang('site.hero.headline')
-                </h1>
-
-                <p data-reveal style="--reveal-delay: 180ms"
-                   class="mt-5 max-w-xl text-base leading-relaxed text-linen-200 md:text-lg">
-                    @lang('site.hero.tagline')
-                </p>
-
-                <form method="GET" action="{{ route('public.fazenda', $l) }}"
-                      data-reveal style="--reveal-delay: 270ms"
-                      class="mt-9 grid gap-3 rounded-panel border border-white/20 bg-white p-3 shadow-panel sm:grid-cols-[1fr_auto]">
-                    <label for="hero-q" class="sr-only">@lang('site.search.home_placeholder')</label>
-                    <input id="hero-q" type="text" name="q" placeholder="@lang('site.search.home_placeholder')"
-                           class="min-h-12 rounded-card border border-linen-200 bg-linen-50 px-4 text-onyx-900 transition duration-200 ease-pib placeholder:text-onyx-500 focus:border-ouro-500 focus:outline-none focus:ring-2 focus:ring-ouro-200">
-                    <button type="submit"
-                            class="rounded-card bg-ouro-500 px-7 py-3 font-semibold text-onyx-950 transition duration-300 ease-pib hover:bg-ouro-400 active:scale-[0.98]">
-                        @lang('site.search.button')
-                    </button>
-                </form>
-
-                <div data-reveal style="--reveal-delay: 360ms" class="mt-5 flex flex-wrap gap-3 text-sm">
-                    @foreach ($categoryRoutes as $key => $url)
-                        <a href="{{ $url }}"
-                           class="rounded-pill border border-white/25 bg-white/10 px-4 py-2 font-semibold text-white backdrop-blur transition duration-300 ease-pib hover:border-ouro-300 hover:bg-white/20 hover:text-ouro-200 active:scale-95">
-                            {{ __('site.nav.'.$key) }}
-                        </a>
-                    @endforeach
-                </div>
-            </div>
-        </div>
     </x-media-hero>
 
+    <section class="relative z-10 mx-auto -mt-10 max-w-7xl px-4 sm:-mt-12 sm:px-6 lg:-mt-14 lg:px-8" data-reveal>
+        <div x-data="listingFilter(@js($regionsByCategory), @js($filters))">
+            @include('public.partials.listing-filters', ['filterMode' => 'home'])
+        </div>
+    </section>
+
     {{-- Inventário em primeiro lugar: destaques logo após o hero --}}
-    <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+    <section class="mx-auto max-w-7xl px-4 pb-16 pt-14 sm:px-6 lg:px-8 lg:pb-20 lg:pt-16">
         <div class="mb-10 flex flex-col justify-between gap-4 md:flex-row md:items-end" data-reveal>
             <div>
                 <span class="text-xs font-semibold uppercase tracking-[0.24em] text-ouro-700">@lang('site.listing.featured_eyebrow')</span>

@@ -12,7 +12,7 @@
         <img src="{{ $listing->mainImageUrl('thumb') ?: asset('images/property-placeholder.webp') }}"
              alt="{{ $listing->mainImageUrl('thumb') ? $listing->title : '' }}"
              loading="lazy" decoding="async"
-             class="size-full object-cover transition-transform duration-700 ease-pib group-hover:scale-105">
+             class="size-full object-contain p-1 transition-opacity duration-300 ease-pib group-hover:opacity-95">
 
         <div class="absolute inset-x-0 top-0 flex items-center justify-between bg-onyx-950/62 px-4 py-2.5 text-xs font-semibold text-white backdrop-blur-sm transition-colors duration-300 group-hover:bg-ouro-600/92">
             <span>@lang('site.cta.details')</span>

@@ -119,6 +119,17 @@ p {
     min-height: 70svh;
 }
 
+/* Faixa de mídia da home: ampla o bastante para o vídeo, sem competir com o filtro. */
+.home-video-hero {
+    min-height: clamp(20rem, 48svh, 40rem);
+}
+
+@media (min-width: 48rem) {
+    .home-video-hero {
+        min-height: clamp(25rem, 55svh, 44rem);
+    }
+}
+
 @utility modal-tall {
     max-height: 85vh;
     max-height: 85svh;

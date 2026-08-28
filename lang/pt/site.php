@@ -22,10 +22,20 @@ return [
         'view_portfolio' => 'Ver oportunidades',
     ],
     'search' => [
+        'title' => 'Busca resumida',
         'home_placeholder' => 'Busque por fazenda, região ou ativo...',
         'placeholder' => 'Buscar por palavra-chave...',
+        'category' => 'Tipo de oportunidade',
         'region_all' => 'Todas as regiões',
+        'max_price' => 'Valor máximo',
+        'min_area' => 'Área mínima',
         'button' => 'Buscar',
+    ],
+    'countries' => [
+        'br' => 'Brasil',
+        'us' => 'Estados Unidos',
+        'es' => 'Espanha',
+        'it' => 'Itália',
     ],
     'categories' => [
         'fazenda' => 'Propriedades rurais selecionadas para produção, lazer e investimento patrimonial.',

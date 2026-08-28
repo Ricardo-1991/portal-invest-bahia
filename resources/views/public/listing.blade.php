@@ -38,11 +38,11 @@
         <div class="grid gap-8 lg:grid-cols-[1.5fr_0.8fr]">
             <div>
                 <div x-data="{ i: 0 }" data-reveal>
-                    <div class="aspect-[16/10] w-full overflow-hidden rounded-panel border border-linen-200 bg-white shadow-card">
+                    <div class="aspect-[16/10] w-full overflow-hidden rounded-panel border border-linen-200 bg-linen-100 shadow-card">
                         @foreach ($images as $index => $url)
                             <img x-show="i === {{ $index }}" src="{{ $url }}" alt="{{ $listing->title }}"
                                  @if ($index > 0) x-cloak loading="lazy" @endif
-                                 class="size-full object-cover">
+                                 class="size-full object-contain p-2">
                         @endforeach
                     </div>
 
@@ -56,7 +56,7 @@
                                     <button type="button" @click="i = {{ $index }}"
                                             :class="i === {{ $index }} ? 'ring-2 ring-ouro-500 ring-offset-2 ring-offset-linen-50' : 'opacity-70 hover:opacity-100'"
                                             class="h-20 w-24 shrink-0 overflow-hidden rounded-card border border-linen-200 bg-white shadow-sm transition duration-300 ease-pib">
-                                        <img src="{{ $url }}" class="size-full object-cover" alt="" loading="lazy">
+                                        <img src="{{ $url }}" class="size-full object-contain p-1" alt="" loading="lazy">
                                     </button>
                                 @endforeach
                             </div>

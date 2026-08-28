@@ -5,11 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Str;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
-use Illuminate\Support\Str;
 use Spatie\Translatable\HasTranslations;
 
 class Listing extends Model implements HasMedia
@@ -97,7 +97,7 @@ class Listing extends Model implements HasMedia
     public function registerMediaConversions(?Media $media = null): void
     {
         $this->addMediaConversion('thumb')
-            ->fit(Fit::Crop, 600, 400)
+            ->fit(Fit::Contain, 600, 400)
             ->nonQueued();
     }
 

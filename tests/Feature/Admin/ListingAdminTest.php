@@ -9,13 +9,19 @@ use App\Filament\Resources\Listings\Pages\CreateListing;
 use App\Filament\Resources\Listings\Pages\EditListing;
 use App\Filament\Resources\Listings\Pages\ListListings;
 use App\Filament\Resources\PageContents\PageContentResource;
+use App\Filament\Resources\PageContents\Pages\EditPageContent;
+use App\Filament\Resources\Users\Pages\EditUser;
 use App\Filament\Resources\Users\UserResource;
 use App\Models\Event;
 use App\Models\Listing;
+use App\Models\PageContent;
 use App\Models\User;
+use Filament\Actions\Action;
 use Filament\Facades\Filament;
+use Filament\Notifications\Notification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use ReflectionMethod;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -157,6 +163,182 @@ class ListingAdminTest extends TestCase
         $this->actingAs($this->admin());
         $this->assertTrue(UserResource::canAccess());
         $this->assertTrue(PageContentResource::canAccess());
+    }
+
+    public function test_every_edit_save_action_requires_confirmation(): void
+    {
+        $admin = $this->admin();
+        $this->actingAs($admin);
+
+        $listing = Listing::create([
+            'user_id' => $admin->id,
+            'category' => 'fazenda',
+            'status' => 'draft',
+            'title' => $this->allLocales('Fazenda'),
+            'description' => $this->allLocales('Descrição'),
+        ]);
+        $event = Event::create([
+            'user_id' => $admin->id,
+            'title' => $this->allLocales('Evento'),
+        ]);
+        $home = PageContent::create([
+            'key' => 'home',
+            'title' => ['pt' => 'Início'],
+        ]);
+
+        $editPages = [
+            [EditListing::class, $listing],
+            [EditEvent::class, $event],
+            [EditPageContent::class, $home],
+            [EditUser::class, $admin],
+        ];
+
+        foreach ($editPages as [$pageClass, $record]) {
+            $livewire = Livewire::test($pageClass, ['record' => $record->getKey()]);
+            $component = $livewire->instance();
+            $action = collect($component->getSchema('content')->getFlatComponents())
+                ->first(fn ($component): bool => $component instanceof Action && $component->getName() === 'save');
+
+            $this->assertInstanceOf(Action::class, $action);
+            $this->assertFalse($action->canSubmitForm());
+            $this->assertNotNull($action->getActionFunction());
+            $this->assertTrue($action->isConfirmationRequired());
+            $this->assertSame('Confirmar alterações', $action->getModalHeading());
+            $this->assertSame('Sim, guardar alterações', $action->getModalSubmitActionLabel());
+
+            $livewire->call('mountAction', 'save', [], $action->getContext())
+                ->assertSet('mountedActions.0.name', 'save');
+
+            $this->assertStringContainsString(
+                'Confirmar alterações',
+                $livewire->getMountedActionModalHtml(),
+            );
+        }
+    }
+
+    public function test_listing_and_event_creation_actions_require_confirmation(): void
+    {
+        $this->actingAs($this->admin());
+
+        foreach ([CreateListing::class, CreateEvent::class] as $pageClass) {
+            $livewire = Livewire::test($pageClass);
+            $component = $livewire->instance();
+
+            foreach (['getCreateFormAction', 'getCreateAnotherFormAction'] as $methodName) {
+                $method = new ReflectionMethod($component, $methodName);
+                $action = $method->invoke($component);
+
+                $this->assertInstanceOf(Action::class, $action);
+                $this->assertNotNull($action->getActionFunction());
+                $this->assertTrue($action->isConfirmationRequired());
+                $this->assertSame('Confirmar criação', $action->getModalHeading());
+                $this->assertSame('Sim, criar registro', $action->getModalSubmitActionLabel());
+            }
+
+            $notificationMethod = new ReflectionMethod($component, 'getCreatedNotification');
+            $notification = $notificationMethod->invoke($component);
+
+            $this->assertInstanceOf(Notification::class, $notification);
+            $this->assertSame('filament.notifications.creation-success', $notification->getView());
+            $this->assertStringContainsString('criado com sucesso!', $notification->getTitle());
+            $this->assertStringContainsString('role="dialog"', $notification->toHtml());
+            $this->assertStringContainsString('place-items: center', $notification->toHtml());
+
+            $restoredNotification = Notification::fromArray($notification->toArray());
+            $this->assertSame('filament.notifications.creation-success', $restoredNotification->getView());
+
+            $action = collect($component->getSchema('content')->getFlatComponents())
+                ->first(fn ($component): bool => $component instanceof Action && $component->getName() === 'create');
+
+            $this->assertInstanceOf(Action::class, $action);
+            $livewire->call('mountAction', 'create', [], $action->getContext())
+                ->assertSet('mountedActions.0.name', 'create');
+
+            $this->assertStringContainsString(
+                'Confirmar criação',
+                $livewire->getMountedActionModalHtml(),
+            );
+        }
+    }
+
+    public function test_listing_numeric_limits_show_validation_instead_of_database_error(): void
+    {
+        $this->actingAs($this->broker());
+
+        $livewire = Livewire::test(CreateListing::class)
+            ->fillForm([
+                'category' => 'fazenda',
+                'status' => 'draft',
+                'price' => '10000000000000',
+                'area' => '12312312312',
+                'title' => ['pt' => 'Fazenda teste'],
+                'description' => ['pt' => 'Descrição da fazenda teste.'],
+            ]);
+
+        $component = $livewire->instance();
+        $action = collect($component->getSchema('content')->getFlatComponents())
+            ->first(fn ($component): bool => $component instanceof Action && $component->getName() === 'create');
+
+        $this->assertInstanceOf(Action::class, $action);
+
+        $livewire
+            ->call('mountAction', 'create', [], $action->getContext())
+            ->assertSet('mountedActions.0.name', 'create')
+            ->call('callMountedAction')
+            ->assertSet('mountedActions', [])
+            ->assertHasFormErrors([
+                'price' => 'max',
+                'area' => 'max',
+            ])
+            ->assertSee('O preço não pode ser maior que R$ 9.999.999.999.999,99.')
+            ->assertSee('A área não pode ser maior que 9.999.999.999,99 hectares.');
+
+        $this->assertDatabaseCount('listings', 0);
+    }
+
+    public function test_confirming_creation_saves_listing_and_event_with_centered_success_feedback(): void
+    {
+        $this->actingAs($this->broker());
+
+        $cases = [
+            [
+                'page' => CreateListing::class,
+                'data' => [
+                    'category' => 'fazenda',
+                    'status' => 'draft',
+                    'title' => ['pt' => 'Fazenda confirmada'],
+                    'description' => ['pt' => 'Descrição da fazenda confirmada.'],
+                ],
+                'table' => 'listings',
+                'notification' => 'Classificado criado com sucesso!',
+            ],
+            [
+                'page' => CreateEvent::class,
+                'data' => [
+                    'title' => ['pt' => 'Evento confirmado'],
+                    'is_published' => true,
+                ],
+                'table' => 'events',
+                'notification' => 'Evento criado com sucesso!',
+            ],
+        ];
+
+        foreach ($cases as $case) {
+            $livewire = Livewire::test($case['page'])->fillForm($case['data']);
+            $component = $livewire->instance();
+            $action = collect($component->getSchema('content')->getFlatComponents())
+                ->first(fn ($component): bool => $component instanceof Action && $component->getName() === 'create');
+
+            $this->assertInstanceOf(Action::class, $action);
+
+            $livewire
+                ->call('mountAction', 'create', [], $action->getContext())
+                ->call('callMountedAction')
+                ->assertHasNoFormErrors()
+                ->assertNotified($case['notification']);
+
+            $this->assertDatabaseCount($case['table'], 1);
+        }
     }
 
     public function test_broker_only_sees_own_events(): void

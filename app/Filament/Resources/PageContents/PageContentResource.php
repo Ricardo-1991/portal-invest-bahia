@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\PageContents;
 
-use App\Filament\Resources\PageContents\Pages\CreatePageContent;
 use App\Filament\Resources\PageContents\Pages\EditPageContent;
 use App\Filament\Resources\PageContents\Pages\ListPageContents;
 use App\Filament\Resources\PageContents\Schemas\PageContentForm;
@@ -13,6 +12,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class PageContentResource extends Resource
 {
@@ -30,6 +30,12 @@ class PageContentResource extends Resource
     public static function canAccess(): bool
     {
         return auth()->user()?->isAdmin() ?? false;
+    }
+
+    /** O painel expõe somente a Home; as demais páginas ficam no código. */
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->where('key', 'home');
     }
 
     public static function form(Schema $schema): Schema
@@ -53,7 +59,6 @@ class PageContentResource extends Resource
     {
         return [
             'index' => ListPageContents::route('/'),
-            'create' => CreatePageContent::route('/create'),
             'edit' => EditPageContent::route('/{record}/edit'),
         ];
     }
