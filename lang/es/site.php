@@ -71,6 +71,8 @@ return [
     ],
     'contact' => [
         'title' => 'Contacte a Portal Invest Bahia',
+        'phone' => 'Teléfono',
+        'email' => 'Correo electrónico',
         'fallback' => 'Contáctenos para publicar una oportunidad, hablar con un corredor o solicitar información sobre activos rurales en Bahía.',
         'card_eyebrow' => 'Atención',
         'card_title' => 'Hable con nuestro equipo',

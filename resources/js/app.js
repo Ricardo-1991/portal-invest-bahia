@@ -139,6 +139,8 @@ Alpine.start();
 // Revelação suave de blocos marcados com [data-reveal] ao entrarem na tela.
 // Storytelling de entrada do hero/seções; não roda se o usuário pediu menos movimento.
 if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObserver' in window) {
+    const revealElements = document.querySelectorAll('[data-reveal]');
+
     const observer = new IntersectionObserver(
         (entries) => {
             entries.forEach((entry) => {
@@ -151,7 +153,10 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && 'Intersect
         { threshold: 0.15 },
     );
 
-    document.querySelectorAll('[data-reveal]').forEach((el) => observer.observe(el));
+    revealElements.forEach((el) => {
+        el.classList.add('reveal-pending');
+        observer.observe(el);
+    });
 } else {
     document.querySelectorAll('[data-reveal]').forEach((el) => el.classList.add('is-visible'));
 }

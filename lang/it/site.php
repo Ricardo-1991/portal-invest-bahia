@@ -71,6 +71,8 @@ return [
     ],
     'contact' => [
         'title' => 'Contatta Portal Invest Bahia',
+        'phone' => 'Telefono',
+        'email' => 'Email',
         'fallback' => "Contattaci per pubblicare un'opportunità, parlare con un mediatore o richiedere informazioni sui beni rurali a Bahia.",
         'card_eyebrow' => 'Assistenza',
         'card_title' => 'Parla con il nostro team',

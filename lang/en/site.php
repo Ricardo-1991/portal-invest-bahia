@@ -71,6 +71,8 @@ return [
     ],
     'contact' => [
         'title' => 'Contact Portal Invest Bahia',
+        'phone' => 'Phone',
+        'email' => 'Email',
         'fallback' => 'Get in touch to publish an opportunity, talk to a broker or request information about rural assets in Bahia.',
         'card_eyebrow' => 'Support',
         'card_title' => 'Talk to our team',

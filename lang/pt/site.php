@@ -71,6 +71,8 @@ return [
     ],
     'contact' => [
         'title' => 'Fale com o Portal Invest Bahia',
+        'phone' => 'Telefone',
+        'email' => 'E-mail',
         'fallback' => 'Entre em contato para divulgar uma oportunidade, falar com um corretor ou solicitar informações sobre ativos rurais na Bahia.',
         'card_eyebrow' => 'Atendimento',
         'card_title' => 'Converse com nossa equipe',

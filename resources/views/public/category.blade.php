@@ -15,55 +15,55 @@
 
 @section('content')
     <div x-data="categorySearch(@js(route('public.'.$category, $l)), @js($filters))">
-        {{-- Mesmo componente do hero da home, aqui sem vídeo. --}}
-        <x-media-hero :poster="$categoryImages[$category]" eager media-class="opacity-55" class="bg-onyx-950">
+        {{-- Faixa de categoria inspirada no cabeçalho compacto da referência. --}}
+        <x-media-hero :poster="$categoryImages[$category]" eager media-class="opacity-20 object-[center_58%]" class="border-b border-linen-300 bg-linen-100">
             <x-slot:overlay>
-                <div class="absolute inset-0 bg-gradient-to-r from-onyx-950 via-onyx-950/70 to-onyx-950/10"></div>
+                <div class="absolute inset-0 bg-gradient-to-r from-linen-100 via-linen-100/95 to-linen-100/55"></div>
             </x-slot:overlay>
 
-            <div class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-24">
-                <span data-reveal class="text-xs font-semibold uppercase tracking-[0.24em] text-ouro-200">
+            <div class="mx-auto max-w-7xl px-4 py-11 sm:px-6 lg:px-8 lg:py-14">
+                <span data-reveal class="text-xs font-semibold uppercase tracking-[0.24em] text-ouro-700">
                     @lang('site.listing.category')
                 </span>
                 <h1 data-reveal style="--reveal-delay: 90ms"
-                    class="mt-3 max-w-3xl font-display text-4xl font-medium leading-[1.08] tracking-tight text-white md:text-6xl">
+                    class="mt-2 max-w-3xl font-display text-4xl font-semibold leading-tight tracking-tight text-onyx-950 md:text-5xl">
                     {{ $page->getTranslation('title', $l, false) ?: __('site.nav.'.$category) }}
                 </h1>
                 <div data-reveal style="--reveal-delay: 180ms">
                     @if ($body = $page->getTranslation('body', $l, false))
-                        <div class="prose prose-invert mt-6 max-w-2xl text-linen-100">{!! $body !!}</div>
+                        <div class="prose prose-pib mt-4 max-w-2xl text-onyx-600">{!! $body !!}</div>
                     @else
-                        <p class="mt-6 max-w-2xl text-lg leading-relaxed text-linen-200">{{ __('site.categories.'.$category) }}</p>
+                        <p class="mt-4 max-w-2xl leading-relaxed text-onyx-600">{{ __('site.categories.'.$category) }}</p>
                     @endif
                 </div>
             </div>
         </x-media-hero>
 
-        <section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-            {{-- Margem negativa: a barra de filtros sobrepõe a base do hero. --}}
+        <section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-12">
             <form method="GET" @submit.prevent="search()"
-                  class="relative z-10 -mt-16 grid gap-3 rounded-panel border border-linen-200 bg-white p-4 shadow-panel md:grid-cols-[1fr_260px_auto]">
-                <label for="filtro-q" class="sr-only">@lang('site.search.placeholder')</label>
-                <input id="filtro-q" type="text" name="q" x-model="q" @input.debounce.400ms="search()"
-                       placeholder="@lang('site.search.placeholder')"
-                       class="min-h-12 rounded-card border border-linen-200 bg-linen-50 px-4 text-onyx-900 transition duration-200 ease-pib placeholder:text-onyx-500 focus:border-ouro-500 focus:outline-none focus:ring-2 focus:ring-ouro-200">
+                  class="grid gap-4 rounded-panel border border-linen-200 bg-white p-5 shadow-panel md:grid-cols-[1fr_280px_auto] md:items-end lg:p-7">
+                <div>
+                    <label for="filtro-q" class="mb-2 block text-xs font-semibold text-onyx-600">@lang('site.search.placeholder')</label>
+                    <input id="filtro-q" type="text" name="q" x-model="q" @input.debounce.400ms="search()"
+                           placeholder="@lang('site.search.home_placeholder')"
+                           class="min-h-13 w-full rounded-card border border-linen-300 bg-linen-50 px-4 text-onyx-900 shadow-inner transition duration-200 placeholder:text-onyx-400 focus:border-ouro-500 focus:outline-none focus:ring-2 focus:ring-ouro-200">
+                </div>
 
-                <label for="filtro-regiao" class="sr-only">@lang('site.listing.region')</label>
-                <select id="filtro-regiao" name="region" x-model="region" @change="search()"
-                        class="min-h-12 rounded-card border border-linen-200 bg-linen-50 px-4 text-onyx-900 transition duration-200 ease-pib focus:border-ouro-500 focus:outline-none focus:ring-2 focus:ring-ouro-200">
-                    <option value="">@lang('site.search.region_all')</option>
-                    @foreach ($regions as $region)
-                        <option value="{{ $region }}">{{ $region }}</option>
-                    @endforeach
-                </select>
+                <div>
+                    <label for="filtro-regiao" class="mb-2 block text-xs font-semibold text-onyx-600">@lang('site.listing.region')</label>
+                    <select id="filtro-regiao" name="region" x-model="region" @change="search()"
+                            class="min-h-13 w-full rounded-card border border-linen-300 bg-linen-50 px-4 text-onyx-900 shadow-inner transition duration-200 focus:border-ouro-500 focus:outline-none focus:ring-2 focus:ring-ouro-200">
+                        <option value="">@lang('site.search.region_all')</option>
+                        @foreach ($regions as $region)
+                            <option value="{{ $region }}">{{ $region }}</option>
+                        @endforeach
+                    </select>
+                </div>
 
-                <button type="submit"
-                        class="rounded-card bg-onyx-950 px-7 py-3 font-semibold text-white transition duration-300 ease-pib hover:bg-ouro-700 active:scale-[0.98]">
-                    @lang('site.search.button')
-                </button>
+                <button type="submit" class="min-h-13 rounded-card bg-onyx-950 px-8 py-3 font-semibold text-white transition duration-300 hover:bg-ouro-600 active:scale-[0.98]">@lang('site.search.button')</button>
             </form>
 
-            <div id="category-results" class="mt-10 transition-opacity duration-300 ease-pib" :class="loading && 'opacity-50'">
+            <div id="category-results" class="mt-9 transition-opacity duration-300 ease-pib" :class="loading && 'opacity-50'">
                 @include('public.partials.category-results')
             </div>
         </section>
