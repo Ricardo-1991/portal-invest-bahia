@@ -16,6 +16,21 @@ return [
         'servico' => 'Serviços',
     ],
 
+    // Canais de contato exibidos na página pública de Contatos.
+    // Deixe whatsapp/phone vazios para simplesmente não exibir aquele canal.
+    'contact' => [
+        'email' => env('PIB_CONTACT_EMAIL', 'admin@pib.com.br'),
+        'whatsapp' => env('PIB_CONTACT_WHATSAPP'),
+        'phone' => env('PIB_CONTACT_PHONE'),
+    ],
+
+    // Limites do hero. O transporte aceita uma pequena margem para que o
+    // Filament consiga exibir a validação amigável dos 100 MB ao usuário.
+    'uploads' => [
+        'hero_video_max_kb' => (int) env('PIB_HERO_VIDEO_MAX_KB', 102400),
+        'temporary_max_kb' => (int) env('PIB_TEMPORARY_UPLOAD_MAX_KB', 122880),
+    ],
+
     // Nota: TRUSTED_PROXIES é lido diretamente via env() em bootstrap/app.php
     // (config() ainda não está disponível nesse estágio do bootstrap).
 

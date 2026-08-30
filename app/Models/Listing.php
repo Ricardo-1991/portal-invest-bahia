@@ -5,11 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
-use Illuminate\Support\Str;
 use Spatie\Translatable\HasTranslations;
 
 class Listing extends Model implements HasMedia
@@ -18,21 +19,50 @@ class Listing extends Model implements HasMedia
 
     protected static function booted(): void
     {
-        // Garante um slug único a partir do primeiro título preenchido (o
-        // corretor pode ter publicado em qualquer um dos 4 idiomas).
+        // Slugs em branco são gerados automaticamente. Um slug preenchido pelo
+        // usuário nunca deve ser alterado silenciosamente para outra URL.
         static::saving(function (Listing $listing): void {
-            if (blank($listing->slug)) {
+            $source = $listing->slug;
+
+            if (blank($source)) {
                 $titles = $listing->getTranslations('title');
                 $firstTitle = $titles['pt'] ?? collect($titles)->first(fn ($value) => filled($value));
-                $base = Str::slug($firstTitle ?: 'anuncio');
-                $slug = $base;
-                $i = 1;
-                while (static::where('slug', $slug)->whereKeyNot($listing->getKey())->exists()) {
-                    $slug = $base.'-'.$i++;
-                }
-                $listing->slug = $slug;
+                $listing->slug = static::generateUniqueSlug($firstTitle ?: 'anuncio', $listing->getKey());
+
+                return;
             }
+
+            $slug = Str::slug($source) ?: 'anuncio';
+
+            if (static::slugExists($slug, $listing->getKey())) {
+                throw ValidationException::withMessages([
+                    'data.slug' => 'Já existe um classificado com este slug. Escolha outro.',
+                ]);
+            }
+
+            $listing->slug = $slug;
         });
+    }
+
+    public static function generateUniqueSlug(string $source, int|string|null $ignoreId = null): string
+    {
+        $base = Str::slug($source) ?: 'anuncio';
+        $slug = $base;
+        $suffix = 1;
+
+        while (static::slugExists($slug, $ignoreId)) {
+            $slug = $base.'-'.$suffix++;
+        }
+
+        return $slug;
+    }
+
+    private static function slugExists(string $slug, int|string|null $ignoreId = null): bool
+    {
+        return static::query()
+            ->where('slug', $slug)
+            ->when(filled($ignoreId), fn (Builder $query) => $query->whereKeyNot($ignoreId))
+            ->exists();
     }
 
     /** Categorias válidas. */
@@ -45,7 +75,7 @@ class Listing extends Model implements HasMedia
     public const LOCALES = ['pt', 'en', 'es', 'it'];
 
     protected $fillable = [
-        'user_id', 'category', 'status', 'slug', 'region', 'price',
+        'user_id', 'category', 'status', 'slug', 'region', 'price', 'area',
         'title', 'subtitle', 'description',
     ];
 
@@ -56,7 +86,18 @@ class Listing extends Model implements HasMedia
     {
         return [
             'price' => 'decimal:2',
+            'area' => 'decimal:2',
         ];
+    }
+
+    /** Preço por hectare, quando preço e área estiverem preenchidos. */
+    public function pricePerHectare(): ?float
+    {
+        if ((float) $this->price > 0 && (float) $this->area > 0) {
+            return (float) $this->price / (float) $this->area;
+        }
+
+        return null;
     }
 
     public function user(): BelongsTo
@@ -86,7 +127,7 @@ class Listing extends Model implements HasMedia
     public function registerMediaConversions(?Media $media = null): void
     {
         $this->addMediaConversion('thumb')
-            ->fit(Fit::Crop, 600, 400)
+            ->fit(Fit::Contain, 600, 400)
             ->nonQueued();
     }
 

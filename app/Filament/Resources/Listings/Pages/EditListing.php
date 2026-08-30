@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Listings\Pages;
 
+use App\Filament\Concerns\ConfirmsSave;
 use App\Filament\Concerns\GuardsListingPublication;
 use App\Filament\Concerns\LoadsTranslations;
 use App\Filament\Resources\Listings\ListingResource;
@@ -11,7 +12,7 @@ use Filament\Resources\Pages\EditRecord;
 
 class EditListing extends EditRecord
 {
-    use GuardsListingPublication, LoadsTranslations;
+    use ConfirmsSave, GuardsListingPublication, LoadsTranslations;
 
     protected static string $resource = ListingResource::class;
 

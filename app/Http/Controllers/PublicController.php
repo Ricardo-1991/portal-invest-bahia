@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use App\Models\Listing;
 use App\Models\PageContent;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class PublicController extends Controller
@@ -17,25 +19,64 @@ class PublicController extends Controller
             'page' => PageContent::forKey('home'),
             'featured' => Listing::published()->latest()->take(6)->get(),
             'events' => Event::published()->orderBy('order')->get(),
+            'regionsByCategory' => $this->regionsByCategory(),
+            'filters' => [
+                'category' => 'fazenda',
+                'q' => null,
+                'region' => null,
+                'max_price' => null,
+                'min_area' => null,
+            ],
+        ]);
+    }
+
+    /** Valida a categoria escolhida na home e encaminha para o catálogo correto. */
+    public function search(Request $request, string $locale): RedirectResponse
+    {
+        $filters = $request->validate($this->filterRules(includeCategory: true));
+        $category = $filters['category'];
+        unset($filters['category']);
+
+        $query = array_filter($filters, static fn ($value): bool => filled($value));
+
+        return redirect()->route('public.'.$category, [
+            'locale' => $locale,
+            ...$query,
         ]);
     }
 
     public function category(Request $request, string $locale, string $category): View|Response
     {
-        $query = Listing::published()->category($category);
+        $filters = $request->validate($this->filterRules());
 
-        // Busca textual (em qualquer idioma) sobre título e descrição.
-        if ($term = trim((string) $request->query('q'))) {
+        // with('user'): o card horizontal exibe o WhatsApp do corretor.
+        $query = Listing::published()->with('user');
+
+        if ($category !== 'all') {
+            $query->category($category);
+        }
+
+        // Busca textual (em qualquer idioma) sobre os textos exibidos no card.
+        if ($term = trim((string) ($filters['q'] ?? ''))) {
             $like = '%'.$term.'%';
             $query->where(function ($q) use ($like) {
                 $q->whereRaw('title::text ilike ?', [$like])
+                    ->orWhereRaw('subtitle::text ilike ?', [$like])
                     ->orWhereRaw('description::text ilike ?', [$like]);
             });
         }
 
         // Filtro por região.
-        if ($region = trim((string) $request->query('region'))) {
+        if ($region = trim((string) ($filters['region'] ?? ''))) {
             $query->where('region', $region);
+        }
+
+        if (filled($filters['max_price'] ?? null)) {
+            $query->whereNotNull('price')->where('price', '<=', $filters['max_price']);
+        }
+
+        if (filled($filters['min_area'] ?? null)) {
+            $query->whereNotNull('area')->where('area', '>=', $filters['min_area']);
         }
 
         $listings = $query->latest()->paginate(12)->withQueryString();
@@ -47,12 +88,51 @@ class PublicController extends Controller
 
         return view('public.category', [
             'category' => $category,
-            'page' => PageContent::forKey($category),
+            'page' => $category === 'all' ? null : PageContent::forKey($category),
             'listings' => $listings,
-            'regions' => Listing::published()->category($category)
-                ->whereNotNull('region')->distinct()->orderBy('region')->pluck('region'),
-            'filters' => ['q' => $request->query('q'), 'region' => $request->query('region')],
+            'regionsByCategory' => $this->regionsByCategory(),
+            'filters' => [
+                'category' => $category,
+                'q' => $filters['q'] ?? null,
+                'region' => $filters['region'] ?? null,
+                'max_price' => $filters['max_price'] ?? null,
+                'min_area' => $filters['min_area'] ?? null,
+            ],
         ]);
+    }
+
+    private function filterRules(bool $includeCategory = false): array
+    {
+        return [
+            ...($includeCategory ? ['category' => ['required', Rule::in(['all', ...Listing::CATEGORIES])]] : []),
+            'q' => ['nullable', 'string', 'max:255'],
+            'region' => ['nullable', 'string', 'max:255'],
+            'max_price' => ['nullable', 'numeric', 'min:0'],
+            'min_area' => ['nullable', 'numeric', 'min:0'],
+        ];
+    }
+
+    /** Regiões publicadas, separadas por categoria para os selects dependentes. */
+    private function regionsByCategory(): array
+    {
+        $regions = Listing::published()
+            ->whereNotNull('region')
+            ->where('region', '<>', '')
+            ->select(['category', 'region'])
+            ->distinct()
+            ->orderBy('category')
+            ->orderBy('region')
+            ->get()
+            ->groupBy('category')
+            ->map(fn ($items) => $items->pluck('region')->values()->all())
+            ->all();
+
+        $regions = array_replace(array_fill_keys(Listing::CATEGORIES, []), $regions);
+
+        return [
+            'all' => collect($regions)->flatten()->unique()->sort()->values()->all(),
+            ...$regions,
+        ];
     }
 
     public function informacoes(string $locale): View

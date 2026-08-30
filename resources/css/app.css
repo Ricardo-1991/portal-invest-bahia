@@ -8,7 +8,7 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
-    --font-display: 'Playfair Display', 'Instrument Sans', ui-serif, serif;
+    --font-display: 'Playfair Display', Georgia, ui-serif, serif;
 
     --color-onyx-950: #0b0a08;
     --color-onyx-900: #15130f;
@@ -29,20 +29,136 @@
 
     --color-sage-50: #f3f6ef;
     --color-sage-100: #e4eadb;
+    --color-sage-200: #cfdac0;
     --color-sage-300: #aab890;
+    --color-sage-400: #8b9c70;
+    --color-sage-500: #6f8055;
+    --color-sage-600: #5f6f47;
     --color-sage-700: #53613e;
+    --color-sage-800: #3f4a30;
 
     --color-ouro-200: #f1dfa4;
     --color-ouro-400: #d4af37;
     --color-ouro-500: #c9a227;
     --color-ouro-600: #a8841f;
     --color-ouro-700: #8a6a1a;
+
+    /* Raios mais contidos, inspirados em portais imobiliários editoriais. */
+    --radius-pill: 9999px;
+    --radius-card: 0.75rem;
+    --radius-panel: 1rem;
+
+    /* Sombras tintadas com o hue onyx (#2d2820) — nunca preto puro. */
+    --shadow-card: 0 10px 30px -18px rgb(45 40 32 / 0.24);
+    --shadow-card-hover: 0 20px 44px -20px rgb(45 40 32 / 0.34);
+    --shadow-panel: 0 18px 48px -24px rgb(45 40 32 / 0.32);
+
+    --ease-pib: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 body {
     background:
-        radial-gradient(circle at top left, rgba(212, 175, 55, 0.12), transparent 30rem),
-        linear-gradient(180deg, #fbf8f1 0%, #f4ede0 48%, #fbf8f1 100%);
+        linear-gradient(rgb(231 220 199 / 0.16) 1px, transparent 1px),
+        linear-gradient(90deg, rgb(231 220 199 / 0.16) 1px, transparent 1px),
+        var(--color-linen-50);
+    background-size: 3rem 3rem;
+}
+
+/*
+ * Grão sobre o fundo inteiro: quebra a chapadura do gradiente sem custo de
+ * request (SVG inline). Fica atrás de todo o conteúdo e nunca captura ponteiro.
+ */
+.grain {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.22;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.22'/%3E%3C/svg%3E");
+}
+
+/* Barra superior em duas camadas: mantém a navegação legível ao rolar. */
+.site-header {
+    box-shadow: 0 12px 32px -24px rgb(45 40 32 / 0.5);
+}
+
+/* Imagens de catálogo recebem um contraste discreto sem alterar os arquivos. */
+.listing-media::after {
+    position: absolute;
+    inset: 0;
+    content: '';
+    pointer-events: none;
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12);
+}
+
+/* Títulos: sem palavra órfã na última linha; corpo sem viúvas. */
+h1,
+h2,
+h3 {
+    text-wrap: balance;
+}
+
+p {
+    text-wrap: pretty;
+}
+
+/* Números alinhados em colunas — preços, áreas e valor por hectare. */
+.tabular {
+    font-variant-numeric: tabular-nums;
+}
+
+/*
+ * Alturas em small viewport (svh): diferente de vh, não pulam quando a barra
+ * do navegador mobile recolhe. Centralizadas aqui em vez de repetir
+ * `min-h-[70svh]` no markup — a medida do hero passa a ter um lugar só.
+ * A primeira declaração é fallback para navegadores sem suporte a svh.
+ */
+@utility hero-tall {
+    min-height: 70vh;
+    min-height: 70svh;
+}
+
+/* Faixa de mídia da home: ampla o bastante para o vídeo, sem competir com o filtro. */
+.home-video-hero {
+    min-height: clamp(20rem, 48svh, 40rem);
+}
+
+@media (min-width: 48rem) {
+    .home-video-hero {
+        min-height: clamp(25rem, 55svh, 44rem);
+    }
+}
+
+@utility modal-tall {
+    max-height: 85vh;
+    max-height: 85svh;
+}
+
+/* Anel de foco único para todo o site (acessibilidade de teclado). */
+:focus-visible {
+    outline: 2px solid var(--color-ouro-500);
+    outline-offset: 2px;
+    border-radius: 0.25rem;
+}
+
+/* Pular para o conteúdo: só aparece quando recebe foco. */
+.skip-link {
+    position: absolute;
+    left: 1rem;
+    top: -100%;
+    z-index: 100;
+    border-radius: var(--radius-pill);
+    background: var(--color-onyx-950);
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-ouro-200);
+    transition: top 0.2s var(--ease-pib);
+}
+
+.skip-link:focus {
+    top: 1rem;
 }
 
 .prose-pib {
@@ -59,13 +175,19 @@ body {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-    [data-reveal] {
+    /*
+     * Entrada escalonada: o elemento define --reveal-delay (ex.: style="--reveal-delay:120ms")
+     * e os irmãos cascateiam em vez de montarem todos de uma vez.
+     */
+    [data-reveal].reveal-pending {
         opacity: 0;
         transform: translateY(16px);
-        transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        transition:
+            opacity 0.6s var(--ease-pib) var(--reveal-delay, 0ms),
+            transform 0.6s var(--ease-pib) var(--reveal-delay, 0ms);
     }
 
-    [data-reveal].is-visible {
+    [data-reveal].reveal-pending.is-visible {
         opacity: 1;
         transform: translateY(0);
     }

@@ -2,30 +2,90 @@ import Alpine from 'alpinejs';
 
 window.Alpine = Alpine;
 
-// Busca ao vivo dos classificados por categoria: dispara ao digitar (debounce)
-// ou trocar a região, sem precisar clicar em "Buscar". Atualiza a URL via
-// history.pushState para manter o link compartilhável e o botão voltar do navegador.
-Alpine.data('categorySearch', (baseUrl, filters) => ({
+// Estado do filtro da home. As regiões acompanham a categoria selecionada e
+// uma região deixa de ser enviada se não existir na nova categoria.
+Alpine.data('listingFilter', (regionsByCategory, filters) => ({
+    category: filters.category || 'fazenda',
     q: filters.q || '',
     region: filters.region || '',
+    maxPrice: filters.max_price ?? '',
+    minArea: filters.min_area ?? '',
+    regionsByCategory,
+
+    get regions() {
+        return this.regionsByCategory[this.category] || [];
+    },
+
+    syncRegion() {
+        if (this.region && !this.regions.includes(this.region)) this.region = '';
+    },
+}));
+
+// Busca ao vivo dos classificados por categoria. Atualiza resultados e URL
+// sem recarregar; trocar de categoria navega para o catálogo correspondente.
+Alpine.data('categorySearch', (baseUrl, filters, categoryRoutes, regionsByCategory) => ({
+    category: filters.category || 'fazenda',
+    q: filters.q || '',
+    region: filters.region || '',
+    maxPrice: filters.max_price ?? '',
+    minArea: filters.min_area ?? '',
+    categoryRoutes,
+    regionsByCategory,
     loading: false,
+    requestController: null,
+
+    get regions() {
+        return this.regionsByCategory[this.category] || [];
+    },
+
+    syncRegion() {
+        if (this.region && !this.regions.includes(this.region)) this.region = '';
+    },
+
+    params() {
+        const params = new URLSearchParams();
+        if (this.q.trim()) params.set('q', this.q.trim());
+        if (this.region) params.set('region', this.region);
+        if (this.maxPrice !== '' && this.maxPrice !== null) params.set('max_price', this.maxPrice);
+        if (this.minArea !== '' && this.minArea !== null) params.set('min_area', this.minArea);
+
+        return params;
+    },
+
+    changeCategory() {
+        this.syncRegion();
+        const params = this.params();
+        const target = this.categoryRoutes[this.category];
+        window.location.assign(params.toString() ? `${target}?${params.toString()}` : target);
+    },
 
     async search() {
+        this.syncRegion();
         this.loading = true;
+        this.requestController?.abort();
+        const controller = new AbortController();
+        this.requestController = controller;
 
-        const params = new URLSearchParams();
-        if (this.q) params.set('q', this.q);
-        if (this.region) params.set('region', this.region);
-
+        const params = this.params();
         const url = params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
 
         try {
-            const response = await fetch(url, { headers: { 'X-PIB-Partial': 'true' } });
+            const response = await fetch(url, {
+                headers: { 'X-PIB-Partial': 'true' },
+                signal: controller.signal,
+            });
+            if (!response.ok) throw new Error(`Search failed with status ${response.status}`);
             const html = await response.text();
             document.getElementById('category-results').innerHTML = html;
             window.history.pushState({}, '', url);
+        } catch (error) {
+            if (error.name !== 'AbortError') console.error(error);
         } finally {
-            this.loading = false;
+            // Uma resposta abortada não pode encerrar o indicador da busca seguinte.
+            if (this.requestController === controller) {
+                this.requestController = null;
+                this.loading = false;
+            }
         }
     },
 }));
@@ -139,6 +199,8 @@ Alpine.start();
 // Revelação suave de blocos marcados com [data-reveal] ao entrarem na tela.
 // Storytelling de entrada do hero/seções; não roda se o usuário pediu menos movimento.
 if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObserver' in window) {
+    const revealElements = document.querySelectorAll('[data-reveal]');
+
     const observer = new IntersectionObserver(
         (entries) => {
             entries.forEach((entry) => {
@@ -151,7 +213,58 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && 'Intersect
         { threshold: 0.15 },
     );
 
-    document.querySelectorAll('[data-reveal]').forEach((el) => observer.observe(el));
+    revealElements.forEach((el) => {
+        el.classList.add('reveal-pending');
+        observer.observe(el);
+    });
 } else {
     document.querySelectorAll('[data-reveal]').forEach((el) => el.classList.add('is-visible'));
+}
+
+// Vídeo de fundo do hero.
+//
+// O markup sai do servidor SEM `autoplay` de propósito: quem decide dar play é
+// este bloco. Isso resolve duas coisas de uma vez —
+//   1. `prefers-reduced-motion: reduce` nunca chega a ver movimento algum;
+//   2. sem mídia cadastrada o servidor renderiza apenas o poster estático.
+// Também pausamos quando o hero sai de vista, para não gastar bateria à toa.
+{
+    const heroVideos = document.querySelectorAll('video[data-hero-video]');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    if (heroVideos.length) {
+        const sync = () => {
+            heroVideos.forEach((video) => {
+                if (reduceMotion.matches) {
+                    video.pause();
+                    video.currentTime = 0;
+                } else {
+                    // Rejeita quando o arquivo não existe ou o navegador bloqueia: o poster fica.
+                    video.play().catch(() => {});
+                }
+            });
+        };
+
+        sync();
+        reduceMotion.addEventListener('change', sync);
+
+        if ('IntersectionObserver' in window) {
+            const visibility = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((entry) => {
+                        if (reduceMotion.matches) return;
+
+                        if (entry.isIntersecting) {
+                            entry.target.play().catch(() => {});
+                        } else {
+                            entry.target.pause();
+                        }
+                    });
+                },
+                { threshold: 0.1 },
+            );
+
+            heroVideos.forEach((video) => visibility.observe(video));
+        }
+    }
 }

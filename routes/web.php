@@ -15,7 +15,10 @@ Route::prefix('{locale}')
     ->middleware('setlocale')
     ->group(function () {
         Route::get('/', [PublicController::class, 'home'])->name('public.home');
+        Route::get('/buscar', [PublicController::class, 'search'])->name('public.search');
 
+        Route::get('/oportunidades', [PublicController::class, 'category'])
+            ->defaults('category', 'all')->name('public.all');
         Route::get('/fazendas', [PublicController::class, 'category'])
             ->defaults('category', 'fazenda')->name('public.fazenda');
         Route::get('/ativos', [PublicController::class, 'category'])

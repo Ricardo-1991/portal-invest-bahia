@@ -48,7 +48,7 @@ class Event extends Model implements HasMedia
     public function registerMediaConversions(?Media $media = null): void
     {
         $this->addMediaConversion('thumb')
-            ->fit(Fit::Crop, 800, 500)
+            ->fit(Fit::Contain, 800, 500)
             ->nonQueued();
     }
 

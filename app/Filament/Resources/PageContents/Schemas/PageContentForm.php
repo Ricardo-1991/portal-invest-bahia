@@ -2,10 +2,7 @@
 
 namespace App\Filament\Resources\PageContents\Schemas;
 
-use App\Filament\Support\LocaleTabs;
-use Filament\Forms\Components\RichEditor;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
@@ -15,35 +12,19 @@ class PageContentForm
     {
         return $schema
             ->components([
-                Section::make('Página')
+                Section::make('Vídeo da página inicial')
+                    ->description('O vídeo aparece somente no hero da página Início.')
                     ->schema([
-                        Select::make('key')
-                            ->label('Página')
-                            ->options([
-                                'home' => 'Início',
-                                'fazenda' => 'Fazenda',
-                                'ativo' => 'Ativo',
-                                'servico' => 'Serviço',
-                                'informacoes' => 'Informações',
-                                'contatos' => 'Contatos',
+                        SpatieMediaLibraryFileUpload::make('hero_video')
+                            ->label('Vídeo do hero')
+                            ->collection('hero_video')
+                            ->acceptedFileTypes(['video/mp4'])
+                            ->maxSize(config('pib.uploads.hero_video_max_kb'))
+                            ->validationMessages([
+                                'max' => 'O vídeo excede o limite de 100 MB. Comprima o arquivo e tente novamente.',
+                                'mimetypes' => 'O vídeo deve estar no formato MP4.',
                             ])
-                            ->required()
-                            ->unique(ignoreRecord: true)
-                            // Não permite trocar a chave de uma página já criada.
-                            ->disabledOn('edit'),
-                    ]),
-
-                Section::make('Conteúdo por idioma')
-                    ->schema([
-                        LocaleTabs::make(fn (string $locale): array => [
-                            TextInput::make("title.{$locale}")
-                                ->label('Título')
-                                ->required($locale === 'pt')
-                                ->maxLength(255),
-
-                            RichEditor::make("body.{$locale}")
-                                ->label('Conteúdo'),
-                        ]),
+                            ->helperText('Envie um MP4 pronto para web, com até 100 MB. Um novo envio substitui o vídeo atual.'),
                     ]),
             ]);
     }
