@@ -77,6 +77,8 @@ class PublicSiteTest extends TestCase
         $this->get('/pt')
             ->assertOk()
             ->assertSee('name="category"', false)
+            ->assertSee('<option value="all"', false)
+            ->assertSee('Todas')
             ->assertSee('name="q"', false)
             ->assertSee('name="region"', false)
             ->assertSee('name="max_price"', false)
@@ -85,9 +87,43 @@ class PublicSiteTest extends TestCase
         $this->get('/pt/buscar?category=ativo&q=cacau&max_price=900000&min_area=30')
             ->assertRedirect('/pt/ativos?q=cacau&max_price=900000&min_area=30');
 
+        $this->get('/pt/buscar?category=all&q=cacau&max_price=900000&min_area=30')
+            ->assertRedirect('/pt/oportunidades?q=cacau&max_price=900000&min_area=30');
+
         $this->from('/pt')->get('/pt/buscar?category=invalida')
             ->assertRedirect('/pt')
             ->assertSessionHasErrors('category');
+    }
+
+    public function test_all_opportunities_catalog_combines_every_listing_category(): void
+    {
+        $this->publishedListing([
+            'slug' => 'fazenda-todas',
+            'category' => 'fazenda',
+            'title' => ['pt' => 'Fazenda em Todas'],
+        ]);
+        $this->publishedListing([
+            'slug' => 'ativo-todos',
+            'category' => 'ativo',
+            'region' => 'Salvador',
+            'title' => ['pt' => 'Ativo em Todas'],
+        ]);
+        $this->publishedListing([
+            'slug' => 'servico-todos',
+            'category' => 'servico',
+            'region' => 'Barreiras',
+            'title' => ['pt' => 'Serviço em Todas'],
+        ]);
+
+        $this->get('/pt/oportunidades')
+            ->assertOk()
+            ->assertSee('Todas as oportunidades')
+            ->assertSee('Fazenda em Todas')
+            ->assertSee('Ativo em Todas')
+            ->assertSee('Serviço em Todas')
+            ->assertSee('Ilhéus')
+            ->assertSee('Salvador')
+            ->assertSee('Barreiras');
     }
 
     public function test_price_and_area_filters_work_alone_and_together(): void
@@ -118,6 +154,7 @@ class PublicSiteTest extends TestCase
     public function test_header_uses_country_flags_without_email_and_contact_page_keeps_email(): void
     {
         config()->set('pib.contact.email', 'admin@pib.com.br');
+        config()->set('pib.contact.whatsapp', '(73) 99999-8888');
 
         $this->get('/pt')
             ->assertOk()
@@ -131,7 +168,11 @@ class PublicSiteTest extends TestCase
         $this->get('/pt/contatos')
             ->assertOk()
             ->assertSee('admin@pib.com.br')
-            ->assertSee('mailto:admin@pib.com.br', false);
+            ->assertSee('mailto:admin@pib.com.br', false)
+            ->assertSee('https://wa.me/73999998888', false)
+            ->assertSee('Falar no WhatsApp')
+            ->assertSee('data-contact-button-icon="whatsapp"', false)
+            ->assertSee('data-contact-button-icon="email"', false);
     }
 
     public function test_detail_page_shows_translation_and_hreflang(): void

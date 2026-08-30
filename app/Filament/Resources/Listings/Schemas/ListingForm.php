@@ -80,7 +80,11 @@ class ListingForm
 
                         TextInput::make('slug')
                             ->label('Slug (URL)')
+                            ->unique(ignoreRecord: true)
                             ->maxLength(255)
+                            ->validationMessages([
+                                'unique' => 'Já existe um classificado com este slug. Escolha outro.',
+                            ])
                             ->helperText('Deixe em branco para gerar automaticamente a partir do título preenchido.'),
                     ]),
 
@@ -124,11 +128,19 @@ class ListingForm
                             ->label('Galeria')
                             ->collection('gallery')
                             ->multiple()
+                            ->appendFiles()
+                            ->maxParallelUploads(1)
                             ->reorderable()
                             ->image()
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
                             ->maxSize(8192)
-                            ->maxFiles(12),
+                            ->maxFiles(12)
+                            ->placeholder('Arraste as imagens ou clique para selecionar')
+                            ->validationMessages([
+                                'max' => 'A galeria aceita no máximo 12 imagens e cada arquivo deve ter até 8 MB.',
+                                'mimetypes' => 'Use somente imagens JPEG, PNG ou WebP.',
+                            ])
+                            ->helperText('Selecione uma ou várias imagens. Formatos JPEG, PNG ou WebP, até 8 MB por arquivo.'),
                     ]),
             ]);
     }

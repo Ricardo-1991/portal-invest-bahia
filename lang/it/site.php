@@ -17,6 +17,7 @@ return [
     'cta' => [
         'details' => 'Vedi dettagli',
         'whatsapp' => 'WhatsApp',
+        'talk_whatsapp' => 'Contattaci su WhatsApp',
         'email' => 'Invia e-mail',
         'contact_broker' => 'Parla con uno specialista',
         'view_portfolio' => 'Vedi opportunità',
@@ -26,6 +27,7 @@ return [
         'home_placeholder' => 'Cerca per tenuta, regione o bene...',
         'placeholder' => 'Cerca per parola chiave...',
         'category' => 'Tipo di opportunità',
+        'category_all' => 'Tutte',
         'region_all' => 'Tutte le regioni',
         'max_price' => 'Prezzo massimo',
         'min_area' => 'Superficie minima',
@@ -38,6 +40,7 @@ return [
         'it' => 'Italia',
     ],
     'categories' => [
+        'all' => 'Consulta in un unico posto tutte le tenute, i beni e i servizi disponibili.',
         'fazenda' => 'Proprietà rurali selezionate per produzione, tempo libero e investimento patrimoniale.',
         'ativo' => 'Beni produttivi e opportunità strutturate con potenziale di valorizzazione.',
         'servico' => 'Supporto specializzato per valutazione, presentazione e negoziazione di beni rurali.',
@@ -57,6 +60,7 @@ return [
         'category' => 'Categoria',
         'gallery' => 'Galleria',
         'no_results' => 'Nessuna opportunità trovata',
+        'all_title' => 'Tutte le opportunità',
         'featured' => 'Opportunità in evidenza',
         'featured_eyebrow' => 'In evidenza',
         'on_request' => 'Su richiesta',

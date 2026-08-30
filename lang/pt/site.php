@@ -17,6 +17,7 @@ return [
     'cta' => [
         'details' => 'Ver detalhes',
         'whatsapp' => 'WhatsApp',
+        'talk_whatsapp' => 'Falar no WhatsApp',
         'email' => 'Enviar e-mail',
         'contact_broker' => 'Falar com especialista',
         'view_portfolio' => 'Ver oportunidades',
@@ -26,6 +27,7 @@ return [
         'home_placeholder' => 'Busque por fazenda, região ou ativo...',
         'placeholder' => 'Buscar por palavra-chave...',
         'category' => 'Tipo de oportunidade',
+        'category_all' => 'Todas',
         'region_all' => 'Todas as regiões',
         'max_price' => 'Valor máximo',
         'min_area' => 'Área mínima',
@@ -38,6 +40,7 @@ return [
         'it' => 'Itália',
     ],
     'categories' => [
+        'all' => 'Consulte em um só lugar todas as fazendas, ativos e serviços disponíveis.',
         'fazenda' => 'Propriedades rurais selecionadas para produção, lazer e investimento patrimonial.',
         'ativo' => 'Ativos produtivos e oportunidades estruturadas com potencial de valorização.',
         'servico' => 'Apoio especializado para avaliação, divulgação e negociação de ativos rurais.',
@@ -57,6 +60,7 @@ return [
         'category' => 'Categoria',
         'gallery' => 'Galeria',
         'no_results' => 'Nenhum anúncio encontrado',
+        'all_title' => 'Todas as oportunidades',
         'featured' => 'Oportunidades em destaque',
         'featured_eyebrow' => 'Destaques',
         'on_request' => 'Sob consulta',

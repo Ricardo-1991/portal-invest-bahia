@@ -17,6 +17,7 @@ return [
     'cta' => [
         'details' => 'View details',
         'whatsapp' => 'WhatsApp',
+        'talk_whatsapp' => 'Chat on WhatsApp',
         'email' => 'Send e-mail',
         'contact_broker' => 'Talk to a specialist',
         'view_portfolio' => 'View opportunities',
@@ -26,6 +27,7 @@ return [
         'home_placeholder' => 'Search by farm, region or asset...',
         'placeholder' => 'Search by keyword...',
         'category' => 'Opportunity type',
+        'category_all' => 'All',
         'region_all' => 'All regions',
         'max_price' => 'Maximum price',
         'min_area' => 'Minimum area',
@@ -38,6 +40,7 @@ return [
         'it' => 'Italy',
     ],
     'categories' => [
+        'all' => 'Browse all available farms, assets and services in one place.',
         'fazenda' => 'Selected rural properties for production, leisure and long-term investment.',
         'ativo' => 'Productive assets and structured opportunities with appreciation potential.',
         'servico' => 'Specialized support for evaluating, presenting and negotiating rural assets.',
@@ -57,6 +60,7 @@ return [
         'category' => 'Category',
         'gallery' => 'Gallery',
         'no_results' => 'No opportunities found',
+        'all_title' => 'All opportunities',
         'featured' => 'Featured opportunities',
         'featured_eyebrow' => 'Featured',
         'on_request' => 'On request',

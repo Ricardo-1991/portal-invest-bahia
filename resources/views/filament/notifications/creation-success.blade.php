@@ -1,3 +1,5 @@
+@php($isDanger = $notification->getStatus() === 'danger')
+
 <div
     x-data="notificationComponent({ notification: @js($notification->toArray()) })"
     x-on:keydown.escape.window="close()"
@@ -5,7 +7,10 @@
     x-transition:enter-end="fi-transition-enter-end"
     x-transition:leave-start="fi-transition-leave-start"
     x-transition:leave-end="fi-transition-leave-end"
-    class="pib-creation-success"
+    @class([
+        'pib-creation-success',
+        'pib-creation-success--danger' => $isDanger,
+    ])
     role="dialog"
     aria-modal="true"
     aria-labelledby="pib-creation-success-title-{{ $notification->getId() }}"
@@ -15,7 +20,13 @@
     <section class="pib-creation-success__panel">
         <div class="pib-creation-success__icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6" />
+                @if ($isDanger)
+                    <path stroke-linecap="round" d="M12 7v6" />
+                    <path stroke-linecap="round" d="M12 17h.01" />
+                    <circle cx="12" cy="12" r="9" />
+                @else
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6" />
+                @endif
             </svg>
         </div>
 
@@ -37,7 +48,7 @@
             type="button"
             class="pib-creation-success__button"
         >
-            Continuar
+            {{ $isDanger ? 'Revisar formulário' : 'Continuar' }}
         </button>
     </section>
 
@@ -85,6 +96,28 @@
         .pib-creation-success__icon svg {
             width: 1.75rem;
             height: 1.75rem;
+        }
+
+        .pib-creation-success--danger .pib-creation-success__panel {
+            border-color: rgb(220 38 38 / 30%);
+        }
+
+        .pib-creation-success--danger .pib-creation-success__icon {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .pib-creation-success--danger .pib-creation-success__button {
+            background: #b91c1c;
+            color: #fff;
+        }
+
+        .pib-creation-success--danger .pib-creation-success__button:hover {
+            background: #991b1b;
+        }
+
+        .pib-creation-success--danger .pib-creation-success__button:focus-visible {
+            outline-color: rgb(220 38 38 / 35%);
         }
 
         .pib-creation-success__title {

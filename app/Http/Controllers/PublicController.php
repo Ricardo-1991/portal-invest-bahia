@@ -50,7 +50,11 @@ class PublicController extends Controller
         $filters = $request->validate($this->filterRules());
 
         // with('user'): o card horizontal exibe o WhatsApp do corretor.
-        $query = Listing::published()->category($category)->with('user');
+        $query = Listing::published()->with('user');
+
+        if ($category !== 'all') {
+            $query->category($category);
+        }
 
         // Busca textual (em qualquer idioma) sobre os textos exibidos no card.
         if ($term = trim((string) ($filters['q'] ?? ''))) {
@@ -84,7 +88,7 @@ class PublicController extends Controller
 
         return view('public.category', [
             'category' => $category,
-            'page' => PageContent::forKey($category),
+            'page' => $category === 'all' ? null : PageContent::forKey($category),
             'listings' => $listings,
             'regionsByCategory' => $this->regionsByCategory(),
             'filters' => [
@@ -100,7 +104,7 @@ class PublicController extends Controller
     private function filterRules(bool $includeCategory = false): array
     {
         return [
-            ...($includeCategory ? ['category' => ['required', Rule::in(Listing::CATEGORIES)]] : []),
+            ...($includeCategory ? ['category' => ['required', Rule::in(['all', ...Listing::CATEGORIES])]] : []),
             'q' => ['nullable', 'string', 'max:255'],
             'region' => ['nullable', 'string', 'max:255'],
             'max_price' => ['nullable', 'numeric', 'min:0'],
@@ -123,7 +127,12 @@ class PublicController extends Controller
             ->map(fn ($items) => $items->pluck('region')->values()->all())
             ->all();
 
-        return array_replace(array_fill_keys(Listing::CATEGORIES, []), $regions);
+        $regions = array_replace(array_fill_keys(Listing::CATEGORIES, []), $regions);
+
+        return [
+            'all' => collect($regions)->flatten()->unique()->sort()->values()->all(),
+            ...$regions,
+        ];
     }
 
     public function informacoes(string $locale): View

@@ -3,6 +3,7 @@
     $l = app()->getLocale();
     $selectedCategory = $filters['category'] ?? 'fazenda';
     $categoryRoutes = [
+        'all' => route('public.all', $l),
         'fazenda' => route('public.fazenda', $l),
         'ativo' => route('public.ativo', $l),
         'servico' => route('public.servico', $l),
@@ -31,7 +32,9 @@
                     @change="{{ $filterMode === 'category' ? 'changeCategory()' : 'syncRegion()' }}"
                     class="min-h-13 w-full rounded-card border border-linen-300 bg-linen-50 px-4 text-onyx-900 shadow-inner transition duration-200 focus:border-ouro-500 focus:outline-none focus:ring-2 focus:ring-ouro-200">
                 @foreach ($categoryRoutes as $key => $url)
-                    <option value="{{ $key }}" @selected($selectedCategory === $key)>{{ __('site.nav.'.$key) }}</option>
+                    <option value="{{ $key }}" @selected($selectedCategory === $key)>
+                        {{ $key === 'all' ? __('site.search.category_all') : __('site.nav.'.$key) }}
+                    </option>
                 @endforeach
             </select>
         </div>

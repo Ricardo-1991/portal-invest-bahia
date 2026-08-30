@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Widgets\PortalBrandWidget;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -11,7 +12,6 @@ use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Widgets\AccountWidget;
-use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -28,6 +28,14 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->brandLogo(fn (): ?string => request()->routeIs('filament.admin.auth.login')
+                ? asset('images/logo.jpeg')
+                : null)
+            ->brandLogoHeight(fn (): ?string => request()->routeIs('filament.admin.auth.login')
+                ? '6rem'
+                : null)
+            ->favicon(asset('images/logo.jpeg'))
+            ->globalSearch(false)
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -39,7 +47,7 @@ class AdminPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
                 AccountWidget::class,
-                FilamentInfoWidget::class,
+                PortalBrandWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,

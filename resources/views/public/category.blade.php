@@ -2,15 +2,17 @@
 
 @php
     $l = app()->getLocale();
+    $isAllCategories = $category === 'all';
     // Caminhos relativos a public/ — o componente resolve a URL e a versão .webp.
     $categoryImages = [
+        'all' => 'images/hero-rural-bahia.png',
         'fazenda' => 'images/category-fazenda.png',
         'ativo' => 'images/category-ativo.png',
         'servico' => 'images/category-servico.png',
     ];
 @endphp
 
-@section('title', $page->getTranslation('title', $l, false) ?: __('site.nav.'.$category))
+@section('title', $isAllCategories ? __('site.listing.all_title') : ($page->getTranslation('title', $l, false) ?: __('site.nav.'.$category)))
 @section('description', __('site.categories.'.$category))
 
 @section('content')
@@ -18,6 +20,7 @@
         @js(route('public.'.$category, $l)),
         @js($filters),
         @js([
+            'all' => route('public.all', $l),
             'fazenda' => route('public.fazenda', $l),
             'ativo' => route('public.ativo', $l),
             'servico' => route('public.servico', $l),
@@ -36,10 +39,10 @@
                 </span>
                 <h1 data-reveal style="--reveal-delay: 90ms"
                     class="mt-2 max-w-3xl font-display text-4xl font-semibold leading-tight tracking-tight text-onyx-950 md:text-5xl">
-                    {{ $page->getTranslation('title', $l, false) ?: __('site.nav.'.$category) }}
+                    {{ $isAllCategories ? __('site.listing.all_title') : ($page->getTranslation('title', $l, false) ?: __('site.nav.'.$category)) }}
                 </h1>
                 <div data-reveal style="--reveal-delay: 180ms">
-                    @if ($body = $page->getTranslation('body', $l, false))
+                    @if (! $isAllCategories && ($body = $page->getTranslation('body', $l, false)))
                         <div class="prose prose-pib mt-4 max-w-2xl text-onyx-600">{!! $body !!}</div>
                     @else
                         <p class="mt-4 max-w-2xl leading-relaxed text-onyx-600">{{ __('site.categories.'.$category) }}</p>

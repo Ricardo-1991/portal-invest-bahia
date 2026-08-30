@@ -17,6 +17,7 @@ return [
     'cta' => [
         'details' => 'Ver detalles',
         'whatsapp' => 'WhatsApp',
+        'talk_whatsapp' => 'Hablar por WhatsApp',
         'email' => 'Enviar correo',
         'contact_broker' => 'Hablar con especialista',
         'view_portfolio' => 'Ver oportunidades',
@@ -26,6 +27,7 @@ return [
         'home_placeholder' => 'Busque por hacienda, región o activo...',
         'placeholder' => 'Buscar por palabra clave...',
         'category' => 'Tipo de oportunidad',
+        'category_all' => 'Todas',
         'region_all' => 'Todas las regiones',
         'max_price' => 'Valor máximo',
         'min_area' => 'Área mínima',
@@ -38,6 +40,7 @@ return [
         'it' => 'Italia',
     ],
     'categories' => [
+        'all' => 'Consulte en un solo lugar todas las haciendas, activos y servicios disponibles.',
         'fazenda' => 'Propiedades rurales seleccionadas para producción, ocio e inversión patrimonial.',
         'ativo' => 'Activos productivos y oportunidades estructuradas con potencial de valorización.',
         'servico' => 'Apoyo especializado para evaluación, presentación y negociación de activos rurales.',
@@ -57,6 +60,7 @@ return [
         'category' => 'Categoría',
         'gallery' => 'Galería',
         'no_results' => 'No se encontraron oportunidades',
+        'all_title' => 'Todas las oportunidades',
         'featured' => 'Oportunidades destacadas',
         'featured_eyebrow' => 'Destacados',
         'on_request' => 'A consultar',

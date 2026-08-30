@@ -20,6 +20,7 @@ use Filament\Actions\Action;
 use Filament\Facades\Filament;
 use Filament\Notifications\Notification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 use ReflectionMethod;
 use Spatie\Permission\Models\Role;
@@ -224,16 +225,15 @@ class ListingAdminTest extends TestCase
             $livewire = Livewire::test($pageClass);
             $component = $livewire->instance();
 
-            foreach (['getCreateFormAction', 'getCreateAnotherFormAction'] as $methodName) {
-                $method = new ReflectionMethod($component, $methodName);
-                $action = $method->invoke($component);
+            $method = new ReflectionMethod($component, 'getCreateFormAction');
+            $action = $method->invoke($component);
 
-                $this->assertInstanceOf(Action::class, $action);
-                $this->assertNotNull($action->getActionFunction());
-                $this->assertTrue($action->isConfirmationRequired());
-                $this->assertSame('Confirmar criação', $action->getModalHeading());
-                $this->assertSame('Sim, criar registro', $action->getModalSubmitActionLabel());
-            }
+            $this->assertInstanceOf(Action::class, $action);
+            $this->assertNotNull($action->getActionFunction());
+            $this->assertTrue($action->isConfirmationRequired());
+            $this->assertSame('Confirmar criação', $action->getModalHeading());
+            $this->assertSame('Sim, criar registro', $action->getModalSubmitActionLabel());
+            $this->assertFalse($component->canCreateAnother());
 
             $notificationMethod = new ReflectionMethod($component, 'getCreatedNotification');
             $notification = $notificationMethod->invoke($component);
@@ -296,6 +296,104 @@ class ListingAdminTest extends TestCase
         $this->assertDatabaseCount('listings', 0);
     }
 
+    public function test_duplicate_listing_slug_shows_validation_instead_of_database_error(): void
+    {
+        $broker = $this->broker();
+        $this->actingAs($broker);
+
+        Listing::create([
+            'user_id' => $broker->id,
+            'category' => 'fazenda',
+            'status' => 'draft',
+            'slug' => 'fazenda-teste-5',
+            'title' => ['pt' => 'Fazenda existente'],
+            'description' => ['pt' => 'Descrição da fazenda existente.'],
+        ]);
+
+        $livewire = Livewire::test(CreateListing::class)
+            ->fillForm([
+                'category' => 'fazenda',
+                'status' => 'draft',
+                'slug' => 'fazenda-teste-5',
+                'title' => ['pt' => 'Fazenda Teste 5'],
+                'description' => ['pt' => 'Descrição da nova fazenda.'],
+            ]);
+
+        $component = $livewire->instance();
+        $action = collect($component->getSchema('content')->getFlatComponents())
+            ->first(fn ($component): bool => $component instanceof Action && $component->getName() === 'create');
+
+        $this->assertInstanceOf(Action::class, $action);
+
+        $livewire
+            ->call('mountAction', 'create', [], $action->getContext())
+            ->call('callMountedAction')
+            ->assertHasFormErrors(['slug' => 'unique'])
+            ->assertSet('data.slug', 'fazenda-teste-5');
+
+        $errorModal = collect(
+            session('filament.claimed_notifications') ?? session('filament.notifications', []),
+        )
+            ->firstWhere('title', 'Não foi possível concluir o cadastro');
+
+        $this->assertNotNull($errorModal);
+        $this->assertSame('danger', $errorModal['status']);
+        $this->assertSame('Já existe um classificado com este slug. Escolha outro.', $errorModal['body']);
+        $this->assertSame('filament.notifications.creation-success', $errorModal['view']);
+
+        $livewire->assertNotified('Não foi possível concluir o cadastro');
+
+        $this->assertDatabaseCount('listings', 1);
+    }
+
+    public function test_listing_model_generates_a_unique_slug_when_slug_is_blank(): void
+    {
+        $broker = $this->broker();
+
+        foreach (range(1, 2) as $index) {
+            Listing::create([
+                'user_id' => $broker->id,
+                'category' => 'fazenda',
+                'status' => 'draft',
+                'title' => ['pt' => 'Fazenda Teste 5'],
+                'description' => ['pt' => "Descrição {$index}."],
+            ]);
+        }
+
+        $this->assertSame(
+            ['fazenda-teste-5', 'fazenda-teste-5-1'],
+            Listing::query()->orderBy('id')->pluck('slug')->all(),
+        );
+    }
+
+    public function test_listing_model_rejects_a_filled_duplicate_slug_without_renaming_it(): void
+    {
+        $broker = $this->broker();
+        $data = [
+            'user_id' => $broker->id,
+            'category' => 'fazenda',
+            'status' => 'draft',
+            'slug' => 'fazenda-teste-5',
+            'title' => ['pt' => 'Fazenda Teste 5'],
+            'description' => ['pt' => 'Descrição da fazenda.'],
+        ];
+
+        Listing::create($data);
+
+        try {
+            Listing::create($data);
+            $this->fail('O modelo permitiu a criação de um slug preenchido e duplicado.');
+        } catch (ValidationException $exception) {
+            $this->assertSame(
+                ['Já existe um classificado com este slug. Escolha outro.'],
+                $exception->errors()['data.slug'],
+            );
+        }
+
+        $this->assertDatabaseCount('listings', 1);
+        $this->assertSame(['fazenda-teste-5'], Listing::pluck('slug')->all());
+    }
+
     public function test_confirming_creation_saves_listing_and_event_with_centered_success_feedback(): void
     {
         $this->actingAs($this->broker());
@@ -306,20 +404,46 @@ class ListingAdminTest extends TestCase
                 'data' => [
                     'category' => 'fazenda',
                     'status' => 'draft',
+                    'region' => 'Chapada Diamantina',
+                    'price' => '950000',
+                    'area' => '120',
+                    'slug' => 'fazenda-confirmada',
                     'title' => ['pt' => 'Fazenda confirmada'],
+                    'subtitle' => ['pt' => 'Pronta para produção'],
                     'description' => ['pt' => 'Descrição da fazenda confirmada.'],
                 ],
                 'table' => 'listings',
                 'notification' => 'Classificado criado com sucesso!',
+                'reset' => [
+                    'category' => null,
+                    'status' => 'draft',
+                    'region' => null,
+                    'price' => null,
+                    'area' => null,
+                    'slug' => null,
+                    'title.pt' => null,
+                    'subtitle.pt' => null,
+                    'description.pt' => null,
+                ],
             ],
             [
                 'page' => CreateEvent::class,
                 'data' => [
                     'title' => ['pt' => 'Evento confirmado'],
+                    'subtitle' => ['pt' => 'Encontro de investidores'],
+                    'description' => ['pt' => 'Descrição do evento confirmado.'],
                     'is_published' => true,
+                    'order' => 8,
                 ],
                 'table' => 'events',
                 'notification' => 'Evento criado com sucesso!',
+                'reset' => [
+                    'title.pt' => null,
+                    'subtitle.pt' => null,
+                    'description.pt' => null,
+                    'is_published' => true,
+                    'order' => 0,
+                ],
             ],
         ];
 
@@ -335,7 +459,13 @@ class ListingAdminTest extends TestCase
                 ->call('mountAction', 'create', [], $action->getContext())
                 ->call('callMountedAction')
                 ->assertHasNoFormErrors()
-                ->assertNotified($case['notification']);
+                ->assertNotified($case['notification'])
+                ->assertSet('record', null)
+                ->assertNoRedirect();
+
+            foreach ($case['reset'] as $field => $value) {
+                $livewire->assertSet("data.{$field}", $value);
+            }
 
             $this->assertDatabaseCount($case['table'], 1);
         }
