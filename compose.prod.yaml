@@ -55,7 +55,7 @@ services:
             POSTGRES_USER: ${DB_USERNAME}
             POSTGRES_PASSWORD: ${DB_PASSWORD}
         volumes:
-            - pib_pgsql:/var/lib/postgresql/data
+            - pib_pgsql:/var/lib/postgresql
         healthcheck:
             test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}"]
             interval: 10s
