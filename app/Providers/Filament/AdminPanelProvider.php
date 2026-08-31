@@ -9,6 +9,7 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\NavigationItem;
 use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -51,6 +52,15 @@ class AdminPanelProvider extends PanelProvider
                 : null)
             ->favicon(asset('images/logo.jpeg'))
             ->globalSearch(false)
+            ->navigationItems([
+                 NavigationItem::make('Ver portal')
+                ->icon('heroicon-o-globe-alt')
+                 ->url(
+                     fn (): string => route('public.home', ['locale' => 'pt']),
+                )
+                ->openUrlInNewTab()
+                ->sort(100),
+            ])
             ->colors([
                 'primary' => Color::Amber,
             ])
