@@ -1,0 +1,87 @@
+services:
+    app:
+        build:
+            context: .
+            dockerfile: docker/production/Dockerfile
+            target: runtime
+        image: pib/app:latest
+        restart: unless-stopped
+        env_file: .env
+        depends_on:
+            pgsql:
+                condition: service_healthy
+        volumes:
+            - pib_storage:/var/www/html/storage
+        networks: [pib]
+
+    queue:
+        build:
+            context: .
+            dockerfile: docker/production/Dockerfile
+            target: runtime
+        image: pib/app:latest
+        restart: unless-stopped
+        command: php artisan queue:work --sleep=3 --tries=3 --timeout=90 --max-time=3600
+        env_file: .env
+        environment:
+            RUN_MIGRATIONS: "false"
+        depends_on:
+            pgsql:
+                condition: service_healthy
+        volumes:
+            - pib_storage:/var/www/html/storage
+        networks: [pib]
+
+    web:
+        build:
+            context: .
+            dockerfile: docker/production/Dockerfile
+            target: web
+        image: pib/web:latest
+        restart: unless-stopped
+        depends_on: [app]
+        volumes:
+            - pib_storage:/var/www/html/storage:ro
+        networks: [pib]
+
+    pgsql:
+        image: postgres:18-alpine
+        restart: unless-stopped
+        environment:
+            POSTGRES_DB: ${DB_DATABASE}
+            POSTGRES_USER: ${DB_USERNAME}
+            POSTGRES_PASSWORD: ${DB_PASSWORD}
+        volumes:
+            - pib_pgsql:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        networks: [pib]
+
+    backup:
+        image: postgres:18-alpine
+        restart: unless-stopped
+        depends_on:
+            pgsql:
+                condition: service_healthy
+        environment:
+            PGPASSWORD: ${DB_PASSWORD}
+        volumes:
+            - pib_backups:/backups
+        entrypoint: >
+            sh -c 'while true; do
+              pg_dump -h pgsql -U ${DB_USERNAME} ${DB_DATABASE} | gzip > /backups/pib-$$(date +%Y%m%d-%H%M).sql.gz;
+              find /backups -name "*.sql.gz" -mtime +14 -delete;
+              sleep 86400;
+            done'
+        networks: [pib]
+
+volumes:
+    pib_pgsql:
+    pib_storage:
+    pib_backups:
+
+networks:
+    pib:
