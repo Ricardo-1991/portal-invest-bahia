@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Notifications\ResetPassword as PortalResetPassword;
+use Filament\Auth\Notifications\ResetPassword as FilamentResetPassword;
 use Filament\Notifications\Notification;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Translatable\Translatable;
@@ -13,7 +15,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(FilamentResetPassword::class, PortalResetPassword::class);
     }
 
     /**
