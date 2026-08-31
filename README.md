@@ -132,6 +132,12 @@ Pronto — acesse:
 
 - **Site público:** http://localhost:8080/pt (também `/en`, `/es`, `/it`)
 - **Painel administrativo:** http://localhost:8080/admin
+- **Caixa de e-mails local (Mailpit):** http://localhost:8025
+
+O serviço `queue` processa em segundo plano os e-mails de recuperação de
+senha. Em desenvolvimento, as mensagens ficam somente no Mailpit e não são
+enviadas para endereços reais. Em produção, configure as variáveis `MAIL_*`
+com o SMTP do provedor e mantenha o serviço `queue` em execução.
 
 ### Credenciais padrão (seeder)
 
@@ -162,6 +168,8 @@ Sail** para usar o PHP/Node do container:
 ./vendor/bin/sail down                # parar os containers
 ./vendor/bin/sail artisan tinker      # REPL do Laravel
 ./vendor/bin/sail artisan test        # rodar a suíte de testes
+./vendor/bin/sail artisan queue:failed # consultar e-mails/jobs que falharam
+./vendor/bin/sail artisan queue:retry all # tentar novamente os jobs com falha
 ./vendor/bin/sail composer require ...
 ./vendor/bin/sail npm run dev|build
 ```

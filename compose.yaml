@@ -24,6 +24,33 @@ services:
             - sail
         depends_on:
             - pgsql
+    queue:
+        build:
+            context: './vendor/laravel/sail/runtimes/8.5'
+            dockerfile: Dockerfile
+            args:
+                WWWGROUP: '${WWWGROUP}'
+        image: 'sail-8.5/app'
+        command: php artisan queue:work --sleep=3 --tries=3 --timeout=90
+        environment:
+            WWWUSER: '${WWWUSER}'
+            LARAVEL_SAIL: 1
+        volumes:
+            - '.:/var/www/html'
+            - './docker/development/php.ini:/etc/php/8.5/cli/conf.d/zz-pib-uploads.ini:ro'
+        networks:
+            - sail
+        depends_on:
+            pgsql:
+                condition: service_healthy
+            mailpit:
+                condition: service_started
+    mailpit:
+        image: 'axllent/mailpit:latest'
+        ports:
+            - '${FORWARD_MAILPIT_PORT:-8025}:8025'
+        networks:
+            - sail
     pgsql:
         image: 'postgres:18-alpine'
         ports:

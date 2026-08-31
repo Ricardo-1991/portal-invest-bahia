@@ -1,7 +1,7 @@
 # Deploy em produção — PIB (Portal Invest Bahia)
 
-Stack de produção: **Nginx + PHP-FPM (Laravel) + PostgreSQL**, orquestrada por
-`compose.prod.yaml`. Alvo: VPS no Brasil, domínio `.com.br`.
+Stack de produção: **Nginx + PHP-FPM (Laravel) + worker de filas + PostgreSQL**,
+orquestrada por `compose.prod.yaml`. Alvo: VPS no Brasil, domínio `.com.br`.
 
 ## Pré-requisitos no servidor
 - Docker + Docker Compose.
@@ -24,7 +24,8 @@ Stack de produção: **Nginx + PHP-FPM (Laravel) + PostgreSQL**, orquestrada por
    docker compose -f compose.prod.yaml up -d --build
    ```
    O `entrypoint` roda `migrate --force`, cria o `storage:link` e faz cache de
-   config/rotas/views automaticamente.
+   config/rotas/views automaticamente. O serviço `queue` envia os e-mails em
+   segundo plano e reinicia periodicamente para carregar novos deploys.
 
 3. Gerar a `APP_KEY` (se ainda não definida) e o usuário admin:
    ```sh

@@ -2,6 +2,8 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Auth\RequestPasswordReset;
+use App\Filament\Pages\Auth\ResetPassword;
 use App\Filament\Widgets\PortalBrandWidget;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -28,10 +30,23 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-            ->brandLogo(fn (): ?string => request()->routeIs('filament.admin.auth.login')
+            ->passwordReset(
+                requestAction: RequestPasswordReset::class,
+                resetAction: ResetPassword::class,
+            )
+            ->passwordResetRoutePrefix('recuperar-senha')
+            ->passwordResetRequestRouteSlug('solicitar')
+            ->passwordResetRouteSlug('redefinir')
+            ->brandLogo(fn (): ?string => request()->routeIs(
+                'filament.admin.auth.login',
+                'filament.admin.auth.password-reset.*',
+            )
                 ? asset('images/logo.jpeg')
                 : null)
-            ->brandLogoHeight(fn (): ?string => request()->routeIs('filament.admin.auth.login')
+            ->brandLogoHeight(fn (): ?string => request()->routeIs(
+                'filament.admin.auth.login',
+                'filament.admin.auth.password-reset.*',
+            )
                 ? '6rem'
                 : null)
             ->favicon(asset('images/logo.jpeg'))

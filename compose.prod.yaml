@@ -14,6 +14,24 @@ services:
             - pib_storage:/var/www/html/storage
         networks: [pib]
 
+    queue:
+        build:
+            context: .
+            dockerfile: docker/production/Dockerfile
+            target: runtime
+        image: pib/app:latest
+        restart: unless-stopped
+        command: php artisan queue:work --sleep=3 --tries=3 --timeout=90 --max-time=3600
+        env_file: .env
+        environment:
+            RUN_MIGRATIONS: "false"
+        depends_on:
+            pgsql:
+                condition: service_healthy
+        volumes:
+            - pib_storage:/var/www/html/storage
+        networks: [pib]
+
     web:
         build:
             context: .
