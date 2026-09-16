@@ -39,6 +39,8 @@ services:
             target: web
         image: pib/web:latest
         restart: unless-stopped
+        expose:
+            - "80"
         depends_on: [app]
         volumes:
             - pib_storage:/var/www/html/storage:ro
