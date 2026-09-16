@@ -17,11 +17,14 @@ return [
     ],
 
     // Canais de contato exibidos na página pública de Contatos.
-    // Deixe whatsapp/phone vazios para simplesmente não exibir aquele canal.
+    // Use PIB_CONTACT_PHONES, separado por vírgulas, para substituir os telefones.
     'contact' => [
-        'email' => env('PIB_CONTACT_EMAIL', 'admin@pib.com.br'),
-        'whatsapp' => env('PIB_CONTACT_WHATSAPP'),
-        'phone' => env('PIB_CONTACT_PHONE'),
+        'email' => env('PIB_CONTACT_EMAIL', 'isaacambiental@gmail.com'),
+        'whatsapp' => env('PIB_CONTACT_WHATSAPP', '(73) 99802-8065'),
+        'phones' => array_values(array_filter(array_map(
+            'trim',
+            explode(',', env('PIB_CONTACT_PHONES', '(73) 99802-8065, (73) 98188-2332, (71) 99199-6668')),
+        ))),
     ],
 
     // Limites do hero. O transporte aceita uma pequena margem para que o
