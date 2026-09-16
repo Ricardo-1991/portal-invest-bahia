@@ -155,6 +155,7 @@ class PublicSiteTest extends TestCase
     {
         config()->set('pib.contact.email', 'admin@pib.com.br');
         config()->set('pib.contact.whatsapp', '(73) 99999-8888');
+        config()->set('pib.contact.phones', ['(73) 99999-8888', '(71) 98888-7777']);
 
         $this->get('/pt')
             ->assertOk()
@@ -170,6 +171,8 @@ class PublicSiteTest extends TestCase
             ->assertSee('admin@pib.com.br')
             ->assertSee('mailto:admin@pib.com.br', false)
             ->assertSee('https://wa.me/73999998888', false)
+            ->assertSee('(73) 99999-8888')
+            ->assertSee('(71) 98888-7777')
             ->assertSee('Falar no WhatsApp')
             ->assertSee('data-contact-button-icon="whatsapp"', false)
             ->assertSee('data-contact-button-icon="email"', false);

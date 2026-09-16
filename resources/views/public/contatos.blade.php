@@ -5,6 +5,7 @@
 
     $contact = config('pib.contact');
     $whatsapp = preg_replace('/\D/', '', (string) ($contact['whatsapp'] ?? ''));
+    $phones = $contact['phones'] ?? [];
 @endphp
 
 @section('title', $page->getTranslation('title', $l, false) ?: __('site.nav.contatos'))
@@ -51,16 +52,17 @@
                     </li>
                 @endif
 
-                @if ($contact['phone'] ?? null)
+                @if ($phones)
                     <li>
-                        <a href="tel:{{ preg_replace('/[^\d+]/', '', $contact['phone']) }}" class="group flex items-center gap-4 py-5 transition-colors duration-200 ease-pib hover:text-ouro-700">
+                        <div class="flex items-start gap-4 py-5">
                             <svg class="h-5 w-5 shrink-0 text-ouro-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"/></svg>
                             <span class="min-w-0 flex-1">
                                 <span class="block text-xs font-semibold uppercase tracking-[0.18em] text-onyx-500">@lang('site.contact.card_eyebrow')</span>
-                                <span class="mt-0.5 block font-medium text-onyx-900 tabular group-hover:text-ouro-700">{{ $contact['phone'] }}</span>
+                                @foreach ($phones as $phone)
+                                    <a href="tel:{{ preg_replace('/[^\d+]/', '', $phone) }}" class="mt-0.5 block w-fit font-medium text-onyx-900 tabular transition-colors hover:text-ouro-700">{{ $phone }}</a>
+                                @endforeach
                             </span>
-                            <span aria-hidden="true" class="shrink-0 text-onyx-400 transition-transform duration-300 ease-pib group-hover:translate-x-1">&rarr;</span>
-                        </a>
+                        </div>
                     </li>
                 @endif
             </ul>

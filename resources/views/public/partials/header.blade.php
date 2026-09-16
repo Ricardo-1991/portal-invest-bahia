@@ -14,7 +14,7 @@
     ];
 
     $contact = config('pib.contact');
-    $phone = $contact['phone'] ?? null;
+    $phone = $contact['phones'][0] ?? null;
 @endphp
 
 <header x-data="{ open: false }" class="site-header sticky top-0 z-30 border-b border-linen-200 bg-white/95 backdrop-blur">
