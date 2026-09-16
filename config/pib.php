@@ -20,10 +20,10 @@ return [
     // Use PIB_CONTACT_PHONES, separado por vírgulas, para substituir os telefones.
     'contact' => [
         'email' => env('PIB_CONTACT_EMAIL', 'isaacambiental@gmail.com'),
-        'whatsapp' => env('PIB_CONTACT_WHATSAPP', '(73) 99802-8065'),
+        'whatsapp' => env('PIB_CONTACT_WHATSAPP', '+55 (73) 99802-8065'),
         'phones' => array_values(array_filter(array_map(
             'trim',
-            explode(',', env('PIB_CONTACT_PHONES', '(73) 99802-8065, (73) 98188-2332, (71) 99199-6668')),
+            explode(',', env('PIB_CONTACT_PHONES', '+55 (73) 99802-8065, +55 (73) 98188-2332, +55 (71) 99199-6668')),
         ))),
     ],
 
