@@ -5,6 +5,9 @@
     // Caminho do MP4, também relativo a public/ (ex.: 'videos/hero.mp4'). Opcional.
     'video' => null,
     // URL pública de uma mídia administrável (por exemplo, Media Library).
+    'mediaUrl' => null,
+    'mediaType' => null,
+    // Compatibilidade com os heros que ainda fornecem vídeo explicitamente.
     'videoUrl' => null,
     'videoType' => 'video/mp4',
     // O hero pode preservar o quadro inteiro do vídeo sem recorte.
@@ -21,6 +24,9 @@
     // Uma URL da Media Library tem prioridade. O caminho estático legado só é
     // emitido quando o arquivo realmente existe em public/.
     $resolvedVideoUrl = $videoUrl ?: ($video && is_file(public_path($video)) ? asset($video) : null);
+    $resolvedMediaUrl = $mediaUrl ?: $resolvedVideoUrl;
+    $resolvedMediaType = $mediaType ?: ($resolvedVideoUrl ? $videoType : null);
+    $isVideo = $resolvedMediaUrl && str_starts_with((string) $resolvedMediaType, 'video/');
     $videoFitClass = $videoFit === 'contain' ? 'object-contain' : 'object-cover';
 
     $posterUrl = asset($poster);
@@ -43,15 +49,20 @@
 --}}
 <section {{ $attributes->merge(['class' => 'relative isolate overflow-hidden']) }}>
     <div class="absolute inset-0 -z-10">
-        @if ($resolvedVideoUrl)
+        @if ($isVideo)
             {{-- O atributo `poster` aceita uma URL só, sem fallback: usa a webp quando existe. --}}
             <video data-hero-video
                    class="size-full {{ $videoFitClass }} {{ $mediaClass }}"
                    poster="{{ $webpUrl ?: $posterUrl }}"
                    muted loop playsinline preload="metadata"
                    aria-hidden="true" tabindex="-1">
-                <source src="{{ $resolvedVideoUrl }}" type="{{ $videoType }}">
+                <source src="{{ $resolvedMediaUrl }}" type="{{ $resolvedMediaType }}">
             </video>
+        @elseif ($resolvedMediaUrl)
+            <img src="{{ $resolvedMediaUrl }}" alt="{{ $alt }}"
+                 @if ($eager) fetchpriority="high" @else loading="lazy" @endif
+                 decoding="async"
+                 class="size-full {{ $videoFitClass }} {{ $mediaClass }}">
         @else
             <picture>
                 @if ($webpUrl)

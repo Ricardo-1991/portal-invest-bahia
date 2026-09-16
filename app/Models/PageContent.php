@@ -25,10 +25,22 @@ class PageContent extends Model implements HasMedia
             ->singleFile();
     }
 
-    /** URL pública do vídeo administrável da página inicial. */
-    public function heroVideoUrl(): ?string
+    /** URL pública da mídia administrável (vídeo ou imagem) da página inicial. */
+    public function heroMediaUrl(): ?string
     {
         return $this->getFirstMedia('hero_video')?->getUrl();
+    }
+
+    /** MIME da mídia do hero, usado para decidir entre a tag video e img. */
+    public function heroMediaMimeType(): ?string
+    {
+        return $this->getFirstMedia('hero_video')?->mime_type;
+    }
+
+    /** @deprecated Use heroMediaUrl(). Mantido para mídia já integrada ao site. */
+    public function heroVideoUrl(): ?string
+    {
+        return $this->heroMediaUrl();
     }
 
     /** Retorna (ou cria) o conteúdo de uma página pela chave. */

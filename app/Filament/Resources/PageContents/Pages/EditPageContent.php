@@ -20,12 +20,12 @@ class EditPageContent extends EditRecord
         try {
             parent::save($shouldRedirect, $shouldSendSavedNotification);
         } catch (FileIsTooBig) {
-            $message = 'O vídeo excede o limite de 100 MB. Comprima o arquivo e tente novamente.';
+            $message = 'A mídia excede o limite de 100 MB. Comprima o arquivo e tente novamente.';
 
-            $this->addError('data.hero_video', $message);
+            $this->addError('data.hero_media', $message);
 
             Notification::make()
-                ->title('Vídeo muito grande')
+                ->title('Arquivo muito grande')
                 ->body($message)
                 ->danger()
                 ->persistent()

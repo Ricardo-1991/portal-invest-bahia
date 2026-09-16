@@ -12,9 +12,10 @@
 @section('title', $page->getTranslation('title', $l, false) ?: config('app.name'))
 
 @section('content')
-    {{-- Hero limpo: o vídeo vem do Filament; sem upload, permanece o poster atual. --}}
+    {{-- Hero limpo: a mídia vem do Filament; sem upload, permanece o poster atual. --}}
     <x-media-hero poster="images/hero-rural-bahia.png"
-                  :video-url="$page->heroVideoUrl()"
+                  :media-url="$page->heroMediaUrl()"
+                  :media-type="$page->heroMediaMimeType()"
                   video-fit="contain"
                   eager
                   class="home-video-hero border-b border-linen-200 bg-onyx-950">

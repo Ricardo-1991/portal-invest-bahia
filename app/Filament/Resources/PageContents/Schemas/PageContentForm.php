@@ -12,19 +12,19 @@ class PageContentForm
     {
         return $schema
             ->components([
-                Section::make('Vídeo da página inicial')
-                    ->description('O vídeo aparece somente no hero da página Início.')
+                Section::make('Mídia da página inicial')
+                    ->description('Envie uma foto ou um vídeo para aparecer somente no hero da página Início.')
                     ->schema([
-                        SpatieMediaLibraryFileUpload::make('hero_video')
-                            ->label('Vídeo do hero')
+                        SpatieMediaLibraryFileUpload::make('hero_media')
+                            ->label('Foto ou vídeo do hero')
                             ->collection('hero_video')
-                            ->acceptedFileTypes(['video/mp4'])
+                            ->acceptedFileTypes(['video/mp4', 'image/jpeg', 'image/png', 'image/webp'])
                             ->maxSize(config('pib.uploads.hero_video_max_kb'))
                             ->validationMessages([
-                                'max' => 'O vídeo excede o limite de 100 MB. Comprima o arquivo e tente novamente.',
-                                'mimetypes' => 'O vídeo deve estar no formato MP4.',
+                                'max' => 'A mídia excede o limite de 100 MB. Comprima o arquivo e tente novamente.',
+                                'mimetypes' => 'Envie um vídeo MP4 ou uma imagem JPG, PNG ou WebP.',
                             ])
-                            ->helperText('Envie um MP4 pronto para web, com até 100 MB. Um novo envio substitui o vídeo atual.'),
+                            ->helperText('Aceita MP4, JPG, PNG ou WebP, com até 100 MB. Um novo envio substitui a mídia atual.'),
                     ]),
             ]);
     }

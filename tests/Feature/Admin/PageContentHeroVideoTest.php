@@ -42,7 +42,7 @@ class PageContentHeroVideoTest extends TestCase
         return (new TestingFile($name, $stream))->mimeType('video/mp4');
     }
 
-    public function test_filament_upload_replaces_and_removes_home_hero_video(): void
+    public function test_filament_upload_replaces_and_removes_home_hero_media(): void
     {
         $home = PageContent::create([
             'key' => 'home',
@@ -50,9 +50,9 @@ class PageContentHeroVideoTest extends TestCase
         ]);
 
         Livewire::test(EditPageContent::class, ['record' => $home->getKey()])
-            ->assertSee('Vídeo do hero')
+            ->assertSee('Foto ou vídeo do hero')
             ->fillForm([
-                'hero_video' => UploadedFile::fake()->create('hero-um.mp4', 1024, 'video/mp4'),
+                'hero_media' => UploadedFile::fake()->create('hero-um.mp4', 1024, 'video/mp4'),
             ])
             ->call('save')
             ->assertHasNoFormErrors();
@@ -62,7 +62,7 @@ class PageContentHeroVideoTest extends TestCase
 
         Livewire::test(EditPageContent::class, ['record' => $home->getKey()])
             ->fillForm([
-                'hero_video' => UploadedFile::fake()->create('hero-dois.mp4', 1024, 'video/mp4'),
+                'hero_media' => UploadedFile::fake()->image('hero-dois.jpg', 1600, 900),
             ])
             ->call('save')
             ->assertHasNoFormErrors();
@@ -71,7 +71,7 @@ class PageContentHeroVideoTest extends TestCase
         $this->assertNotSame($firstMediaId, $home->getFirstMedia('hero_video')->getKey());
 
         Livewire::test(EditPageContent::class, ['record' => $home->getKey()])
-            ->fillForm(['hero_video' => null])
+            ->fillForm(['hero_media' => null])
             ->call('save')
             ->assertHasNoFormErrors();
 
@@ -101,7 +101,7 @@ class PageContentHeroVideoTest extends TestCase
             ->assertCanNotSeeTableRecords([$otherPage]);
 
         Livewire::test(EditPageContent::class, ['record' => $home->getKey()])
-            ->assertSee('Vídeo do hero')
+            ->assertSee('Foto ou vídeo do hero')
             ->assertDontSee('Conteúdo por idioma')
             ->assertDontSee('Título');
 
@@ -118,11 +118,11 @@ class PageContentHeroVideoTest extends TestCase
 
         Livewire::test(EditPageContent::class, ['record' => $home->getKey()])
             ->fillForm([
-                'hero_video' => $this->videoWithRealSize('hero-grande.mp4', 102401),
+                'hero_media' => $this->videoWithRealSize('hero-grande.mp4', 102401),
             ])
             ->call('save')
-            ->assertHasFormErrors(['hero_video'])
-            ->assertSee('O vídeo excede o limite de 100 MB');
+            ->assertHasFormErrors(['hero_media'])
+            ->assertSee('A mídia excede o limite de 100 MB');
 
         $this->assertCount(0, $home->refresh()->getMedia('hero_video'));
     }
@@ -139,16 +139,16 @@ class PageContentHeroVideoTest extends TestCase
 
         Livewire::test(EditPageContent::class, ['record' => $home->getKey()])
             ->fillForm([
-                'hero_video' => $this->videoWithRealSize('hero-11mb.mp4', 11 * 1024),
+                'hero_media' => $this->videoWithRealSize('hero-11mb.mp4', 11 * 1024),
             ])
             ->call('save')
-            ->assertHasErrors(['data.hero_video'])
-            ->assertNotified('Vídeo muito grande');
+            ->assertHasErrors(['data.hero_media'])
+            ->assertNotified('Arquivo muito grande');
 
         $this->assertCount(0, $home->refresh()->getMedia('hero_video'));
     }
 
-    public function test_home_uses_poster_without_video_and_renders_uploaded_mp4(): void
+    public function test_home_uses_poster_without_media_and_renders_uploaded_media(): void
     {
         $home = PageContent::create([
             'key' => 'home',
@@ -173,6 +173,14 @@ class PageContentHeroVideoTest extends TestCase
 
         $this->get('/pt')
             ->assertOk()
+            ->assertDontSee('data-hero-video', false);
+
+        $home->addMedia(UploadedFile::fake()->image('hero.jpg', 1600, 900))
+            ->toMediaCollection('hero_video', 'public');
+
+        $this->get('/pt')
+            ->assertOk()
+            ->assertSee('hero.jpg', false)
             ->assertDontSee('data-hero-video', false);
     }
 }

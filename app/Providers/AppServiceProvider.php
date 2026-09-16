@@ -40,6 +40,7 @@ class AppServiceProvider extends ServiceProvider
             'livewire.temporary_file_upload.rules' => [
                 'required',
                 'file',
+                'mimetypes:video/mp4,image/jpeg,image/png,image/webp',
                 'max:'.config('pib.uploads.temporary_max_kb'),
             ],
         ]);
