@@ -160,12 +160,17 @@ class PageContentHeroVideoTest extends TestCase
             ->assertSee('hero-rural-bahia', false)
             ->assertDontSee('data-hero-video', false);
 
-        $home->addMedia(UploadedFile::fake()->create('hero.mp4', 1024, 'video/mp4'))
+        $media = $home->addMedia(UploadedFile::fake()->create('hero.mp4', 1024, 'video/mp4'))
             ->toMediaCollection('hero_video', 'public');
+
+        // O arquivo falso é vazio; a Media Library detecta seu conteúdo como
+        // application/x-empty. Simula o MIME persistido de um MP4 real.
+        $media->update(['mime_type' => 'video/mp4']);
 
         $this->get('/pt')
             ->assertOk()
             ->assertSee('data-hero-video', false)
+            ->assertSee('src="/storage/'.$media->getKey().'/hero.mp4"', false)
             ->assertSee('hero.mp4', false)
             ->assertSee('type="video/mp4"', false);
 

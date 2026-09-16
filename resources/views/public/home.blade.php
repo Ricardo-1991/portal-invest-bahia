@@ -16,7 +16,7 @@
     <x-media-hero poster="images/hero-rural-bahia.png"
                   :media-url="$page->heroMediaUrl()"
                   :media-type="$page->heroMediaMimeType()"
-                  video-fit="contain"
+                  video-fit="cover"
                   eager
                   class="home-video-hero border-b border-linen-200 bg-onyx-950">
         <x-slot:overlay>

@@ -41,7 +41,10 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
+            // Mantém a mídia na mesma origem do painel, com ou sem www.
+            // URLs absolutas baseadas em APP_URL bloqueiam o preview via CORS
+            // quando o administrador acessa outro domínio válido do portal.
+            'url' => '/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
