@@ -35,8 +35,8 @@
             </a>
         </nav>
 
-        <div class="grid gap-8 lg:grid-cols-[1.5fr_0.8fr]">
-            <div>
+        <div class="grid gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,0.8fr)]">
+            <div class="min-w-0">
                 <div x-data="{ i: 0 }" data-reveal>
                     <div class="aspect-[16/10] w-full overflow-hidden rounded-panel border border-linen-200 bg-linen-100 shadow-card">
                         @foreach ($images as $index => $url)
@@ -51,7 +51,7 @@
                             <span class="text-xs font-semibold uppercase tracking-[0.18em] text-onyx-500">
                                 @lang('site.listing.gallery')
                             </span>
-                            <div class="mt-3 flex items-center gap-3 overflow-x-auto pb-2">
+                            <div class="mt-3 flex w-full min-w-0 items-center gap-3 overflow-x-auto pb-2">
                                 @foreach ($images as $index => $url)
                                     <button type="button" @click="i = {{ $index }}"
                                             :class="i === {{ $index }} ? 'ring-2 ring-ouro-500 ring-offset-2 ring-offset-linen-50' : 'opacity-70 hover:opacity-100'"
