@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\AreaUnits;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -22,6 +23,10 @@ class Listing extends Model implements HasMedia
         // Slugs em branco são gerados automaticamente. Um slug preenchido pelo
         // usuário nunca deve ser alterado silenciosamente para outra URL.
         static::saving(function (Listing $listing): void {
+            $listing->currency ??= 'BRL';
+            $listing->area_unit ??= 'ha';
+            $listing->area_sqm = AreaUnits::toSquareMeters($listing->area, $listing->area_unit);
+
             $source = $listing->slug;
 
             if (blank($source)) {
@@ -66,7 +71,7 @@ class Listing extends Model implements HasMedia
     }
 
     /** Categorias válidas. */
-    public const CATEGORIES = ['fazenda', 'ativo', 'servico'];
+    public const CATEGORIES = ['fazenda', 'ativo', 'servico', 'apartamento', 'casa', 'sitio'];
 
     /** Situações válidas. */
     public const STATUSES = ['draft', 'published', 'hidden'];
@@ -75,7 +80,7 @@ class Listing extends Model implements HasMedia
     public const LOCALES = ['pt', 'en', 'es', 'it'];
 
     protected $fillable = [
-        'user_id', 'category', 'status', 'slug', 'region', 'price', 'area',
+        'user_id', 'category', 'status', 'slug', 'region', 'latitude', 'longitude', 'price', 'currency', 'area', 'area_unit',
         'title', 'subtitle', 'description',
     ];
 
@@ -87,17 +92,10 @@ class Listing extends Model implements HasMedia
         return [
             'price' => 'decimal:2',
             'area' => 'decimal:2',
+            'area_sqm' => 'decimal:2',
+            'latitude' => 'decimal:7',
+            'longitude' => 'decimal:7',
         ];
-    }
-
-    /** Preço por hectare, quando preço e área estiverem preenchidos. */
-    public function pricePerHectare(): ?float
-    {
-        if ((float) $this->price > 0 && (float) $this->area > 0) {
-            return (float) $this->price / (float) $this->area;
-        }
-
-        return null;
     }
 
     public function user(): BelongsTo

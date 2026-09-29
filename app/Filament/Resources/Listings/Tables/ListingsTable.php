@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Listings\Tables;
 
 use App\Models\Listing;
 use App\Support\ListingPdf;
+use App\Support\MoneyInput;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -35,7 +36,7 @@ class ListingsTable
                 TextColumn::make('category')
                     ->label('Categoria')
                     ->badge()
-                    ->formatStateUsing(fn (string $state) => ucfirst($state)),
+                    ->formatStateUsing(fn (string $state) => __('site.nav.'.$state, [], 'pt')),
 
                 TextColumn::make('status')
                     ->label('Situação')
@@ -55,10 +56,14 @@ class ListingsTable
                     ->label('Região')
                     ->toggleable(),
 
+                TextColumn::make('price')
+                    ->label('Preço')
+                    ->formatStateUsing(fn ($state, $record) => $state === null ? null : ($record->currency === 'USD' ? 'US$ ' : 'R$ ').MoneyInput::display($state))
+                    ->toggleable(),
+
                 TextColumn::make('area')
-                    ->label('Área (ha)')
-                    ->numeric(decimalPlaces: 0)
-                    ->suffix(' ha')
+                    ->label('Área')
+                    ->formatStateUsing(fn ($state, $record) => $state === null ? null : MoneyInput::display($state).' '.__('site.area_unit_short.'.($record->area_unit ?: 'ha'), [], 'pt'))
                     ->toggleable(),
 
                 TextColumn::make('user.name')
@@ -77,6 +82,9 @@ class ListingsTable
                         'fazenda' => 'Fazenda',
                         'ativo' => 'Ativo',
                         'servico' => 'Serviço',
+                        'apartamento' => 'Apartamento',
+                        'casa' => 'Casa',
+                        'sitio' => 'Sítio',
                     ]),
                 SelectFilter::make('status')
                     ->label('Situação')

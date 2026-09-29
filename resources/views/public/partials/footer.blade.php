@@ -26,9 +26,10 @@
             <div>
                 <h2 class="border-l-4 border-ouro-500 pl-3 text-sm font-semibold text-onyx-950">@lang('site.sections.portfolio_eyebrow')</h2>
                 <nav class="mt-5 grid gap-2.5 text-sm text-onyx-600">
-                    <a href="{{ route('public.fazenda', $l) }}" class="transition hover:text-ouro-700">@lang('site.nav.fazenda')</a>
-                    <a href="{{ route('public.ativo', $l) }}" class="transition hover:text-ouro-700">@lang('site.nav.ativo')</a>
-                    <a href="{{ route('public.servico', $l) }}" class="transition hover:text-ouro-700">@lang('site.nav.servico')</a>
+                    <a href="{{ route('public.all', $l) }}" class="transition hover:text-ouro-700">@lang('site.listing.all_title')</a>
+                    @foreach (\App\Models\Listing::CATEGORIES as $category)
+                        <a href="{{ route('public.'.$category, $l) }}" class="transition hover:text-ouro-700">{{ __('site.nav.'.$category) }}</a>
+                    @endforeach
                 </nav>
             </div>
         </div>

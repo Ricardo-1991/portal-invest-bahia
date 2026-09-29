@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use App\Models\Listing;
 use App\Models\PageContent;
+use App\Support\AreaUnits;
+use App\Support\MoneyInput;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -25,7 +27,9 @@ class PublicController extends Controller
                 'q' => null,
                 'region' => null,
                 'max_price' => null,
+                'price_currency' => 'BRL',
                 'min_area' => null,
+                'area_unit' => 'ha',
             ],
         ]);
     }
@@ -33,9 +37,16 @@ class PublicController extends Controller
     /** Valida a categoria escolhida na home e encaminha para o catálogo correto. */
     public function search(Request $request, string $locale): RedirectResponse
     {
+        $this->normalizePriceFilter($request);
         $filters = $request->validate($this->filterRules(includeCategory: true));
         $category = $filters['category'];
         unset($filters['category']);
+        if (blank($filters['max_price'] ?? null)) {
+            unset($filters['price_currency']);
+        }
+        if (blank($filters['min_area'] ?? null)) {
+            unset($filters['area_unit']);
+        }
 
         $query = array_filter($filters, static fn ($value): bool => filled($value));
 
@@ -47,6 +58,7 @@ class PublicController extends Controller
 
     public function category(Request $request, string $locale, string $category): View|Response
     {
+        $this->normalizePriceFilter($request);
         $filters = $request->validate($this->filterRules());
 
         // with('user'): o card horizontal exibe o WhatsApp do corretor.
@@ -72,11 +84,17 @@ class PublicController extends Controller
         }
 
         if (filled($filters['max_price'] ?? null)) {
-            $query->whereNotNull('price')->where('price', '<=', $filters['max_price']);
+            $query->where('currency', $filters['price_currency'] ?? 'BRL')
+                ->whereNotNull('price')
+                ->where('price', '<=', $filters['max_price']);
         }
 
         if (filled($filters['min_area'] ?? null)) {
-            $query->whereNotNull('area')->where('area', '>=', $filters['min_area']);
+            $query->whereNotNull('area_sqm')
+                ->where('area_sqm', '>=', AreaUnits::toSquareMeters(
+                    $filters['min_area'],
+                    $filters['area_unit'] ?? 'ha',
+                ));
         }
 
         $listings = $query->latest()->paginate(12)->withQueryString();
@@ -96,9 +114,20 @@ class PublicController extends Controller
                 'q' => $filters['q'] ?? null,
                 'region' => $filters['region'] ?? null,
                 'max_price' => $filters['max_price'] ?? null,
+                'price_currency' => $filters['price_currency'] ?? 'BRL',
                 'min_area' => $filters['min_area'] ?? null,
+                'area_unit' => $filters['area_unit'] ?? 'ha',
             ],
         ]);
+    }
+
+    private function normalizePriceFilter(Request $request): void
+    {
+        $value = $request->input('max_price');
+
+        if (is_string($value) && str_contains($value, ',')) {
+            $request->merge(['max_price' => MoneyInput::toDecimal($value)]);
+        }
     }
 
     private function filterRules(bool $includeCategory = false): array
@@ -107,8 +136,10 @@ class PublicController extends Controller
             ...($includeCategory ? ['category' => ['required', Rule::in(['all', ...Listing::CATEGORIES])]] : []),
             'q' => ['nullable', 'string', 'max:255'],
             'region' => ['nullable', 'string', 'max:255'],
-            'max_price' => ['nullable', 'numeric', 'min:0'],
-            'min_area' => ['nullable', 'numeric', 'min:0'],
+            'max_price' => ['nullable', 'numeric', 'min:0', 'max:9999999999999.99'],
+            'price_currency' => ['nullable', Rule::in(['BRL', 'USD'])],
+            'min_area' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
+            'area_unit' => ['nullable', Rule::in(array_keys(AreaUnits::SQUARE_METERS))],
         ];
     }
 

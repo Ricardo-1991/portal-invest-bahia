@@ -25,6 +25,12 @@ Route::prefix('{locale}')
             ->defaults('category', 'ativo')->name('public.ativo');
         Route::get('/servicos', [PublicController::class, 'category'])
             ->defaults('category', 'servico')->name('public.servico');
+        Route::get('/apartamentos', [PublicController::class, 'category'])
+            ->defaults('category', 'apartamento')->name('public.apartamento');
+        Route::get('/casas', [PublicController::class, 'category'])
+            ->defaults('category', 'casa')->name('public.casa');
+        Route::get('/sitios', [PublicController::class, 'category'])
+            ->defaults('category', 'sitio')->name('public.sitio');
 
         Route::get('/informacoes', [PublicController::class, 'informacoes'])->name('public.informacoes');
         Route::get('/contatos', [PublicController::class, 'contatos'])->name('public.contatos');

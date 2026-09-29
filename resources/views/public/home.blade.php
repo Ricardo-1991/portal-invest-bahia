@@ -2,11 +2,9 @@
 
 @php
     $l = app()->getLocale();
-    $categoryRoutes = [
-        'fazenda' => route('public.fazenda', $l),
-        'ativo' => route('public.ativo', $l),
-        'servico' => route('public.servico', $l),
-    ];
+    $categoryRoutes = collect(\App\Models\Listing::CATEGORIES)
+        ->mapWithKeys(fn (string $category) => [$category => route('public.'.$category, $l)])
+        ->all();
 @endphp
 
 @section('title', $page->getTranslation('title', $l, false) ?: config('app.name'))

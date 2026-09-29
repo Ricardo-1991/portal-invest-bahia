@@ -54,6 +54,9 @@ class DatabaseSeeder extends Seeder
             'fazenda' => 'Fazendas',
             'ativo' => 'Ativos',
             'servico' => 'Serviços',
+            'apartamento' => 'Apartamentos',
+            'casa' => 'Casas',
+            'sitio' => 'Sítios',
             'informacoes' => 'Informações',
             'contatos' => 'Contatos',
         ];

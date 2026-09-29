@@ -1,7 +1,7 @@
 @props([
     // Imagem de fundo, caminho RELATIVO a public/ (ex.: 'images/hero-rural-bahia.png').
     // Vira o `poster` quando há vídeo, ou a própria mídia quando não há.
-    'poster',
+    'poster' => null,
     // Caminho do MP4, também relativo a public/ (ex.: 'videos/hero.mp4'). Opcional.
     'video' => null,
     // URL pública de uma mídia administrável (por exemplo, Media Library).
@@ -29,11 +29,11 @@
     $isVideo = $resolvedMediaUrl && str_starts_with((string) $resolvedMediaType, 'video/');
     $videoFitClass = $videoFit === 'contain' ? 'object-contain' : 'object-cover';
 
-    $posterUrl = asset($poster);
+    $posterUrl = $poster ? asset($poster) : null;
 
     // Versão .webp irmã (~90% menor que a PNG). Quando existe, é ela que serve.
-    $webp = preg_replace('/\.(png|jpe?g)$/i', '.webp', $poster);
-    $webpUrl = $webp !== $poster && is_file(public_path($webp)) ? asset($webp) : null;
+    $webp = $poster ? preg_replace('/\.(png|jpe?g)$/i', '.webp', $poster) : null;
+    $webpUrl = $webp && $webp !== $poster && is_file(public_path($webp)) ? asset($webp) : null;
 @endphp
 
 {{--
@@ -63,7 +63,7 @@
                  @if ($eager) fetchpriority="high" @else loading="lazy" @endif
                  decoding="async"
                  class="size-full {{ $videoFitClass }} {{ $mediaClass }}">
-        @else
+        @elseif ($posterUrl)
             <picture>
                 @if ($webpUrl)
                     <source srcset="{{ $webpUrl }}" type="image/webp">

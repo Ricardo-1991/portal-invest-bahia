@@ -1,10 +1,11 @@
 @props(['listing'])
 
 @php
-    // Sem casas decimais quando a área é inteira: "133 ha", mas "13,5 ha".
-    $area = (float) $listing->area;
+    $area = $listing->area;
+    $unit = $listing->area_unit ?: 'ha';
+    $decimals = str_contains((string) $area, '.')
+        ? strlen(rtrim(substr((string) $area, strpos((string) $area, '.') + 1), '0'))
+        : 0;
 @endphp
 
-{{-- Saída de texto puro, sem wrapper: quem chama decide a marcação em volta.
-     Número e unidade ficam coladas de propósito (sem quebra de linha entre elas). --}}
-@if ($area > 0){{ number_format($area, fmod($area, 1) === 0.0 ? 0 : 1, ',', '.') }} {{ __('site.listing.area_unit') }}@endif
+@if ((float) $area > 0){{ number_format((float) $area, min($decimals, 2), ',', '.') }} {{ __('site.area_unit_short.'.$unit) }}@endif

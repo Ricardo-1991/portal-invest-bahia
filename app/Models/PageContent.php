@@ -12,7 +12,7 @@ class PageContent extends Model implements HasMedia
     use HasTranslations, InteractsWithMedia;
 
     /** Chaves de página válidas. */
-    public const KEYS = ['home', 'fazenda', 'ativo', 'servico', 'informacoes', 'contatos'];
+    public const KEYS = ['home', 'fazenda', 'ativo', 'servico', 'apartamento', 'casa', 'sitio', 'informacoes', 'contatos'];
 
     protected $fillable = ['key', 'title', 'body'];
 
