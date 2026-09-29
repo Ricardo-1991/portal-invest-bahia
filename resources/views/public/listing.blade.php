@@ -20,6 +20,9 @@
     $subject = rawurlencode($listing->title);
 
     $hasArea = (float) $listing->area > 0;
+    $hasCoordinates = \App\Support\ListingMap::hasCoordinates($listing->latitude, $listing->longitude);
+    $mapUrl = $hasCoordinates ? \App\Support\ListingMap::embedUrl($listing->latitude, $listing->longitude) : null;
+    $openMapUrl = $hasCoordinates ? \App\Support\ListingMap::openUrl($listing->latitude, $listing->longitude) : null;
 @endphp
 
 @section('title', $listing->title)
@@ -98,6 +101,26 @@
 
                     <p class="mt-7 whitespace-pre-line text-lg leading-relaxed text-onyx-700">{{ $listing->description }}</p>
                 </article>
+
+                @if ($hasCoordinates)
+                    <section x-data="{ mapOpen: false }" class="mt-8 rounded-panel border border-linen-200 bg-white p-6 shadow-card md:p-10">
+                        <h2 class="font-display text-2xl text-onyx-950">@lang('site.listing.exact_location')</h2>
+                        <p class="mt-2 text-sm text-onyx-600">@lang('site.listing.map_external_notice')</p>
+                        <button type="button" x-show="!mapOpen" @click="mapOpen = true"
+                                class="mt-5 rounded-card bg-onyx-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-ouro-600">
+                            @lang('site.listing.load_map')
+                        </button>
+                        <template x-if="mapOpen">
+                            <iframe src="{{ $mapUrl }}" title="@lang('site.listing.map_title')"
+                                    class="mt-5 h-80 w-full rounded-card border border-linen-200"
+                                    loading="lazy" referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin"></iframe>
+                        </template>
+                        <a href="{{ $openMapUrl }}" target="_blank" rel="noopener noreferrer"
+                           class="mt-4 block text-sm font-semibold text-ouro-700 underline underline-offset-2">
+                            @lang('site.listing.open_map')
+                        </a>
+                    </section>
+                @endif
             </div>
 
             <aside class="lg:sticky lg:top-28 lg:self-start" data-reveal style="--reveal-delay: 180ms">

@@ -33,27 +33,57 @@ class PublicSiteTest extends TestCase
         $this->get('/')->assertRedirect();
     }
 
-    public function test_horizontal_card_shows_area_price_per_hectare_and_whatsapp(): void
+    public function test_card_shows_area_and_only_the_listing_price(): void
     {
-        // Valores da referência: R$ 2.660.000 / 133 ha = R$ 20.000/ha.
-        $listing = $this->publishedListing(['price' => 2660000, 'area' => 133]);
-
-        $this->assertSame(20000.0, $listing->pricePerHectare());
+        $this->publishedListing(['price' => 2660000, 'area' => 133]);
 
         $this->get('/pt/fazendas')
             ->assertOk()
             ->assertSee('133 ha')
             ->assertSee('R$ 2.660.000,00')
-            ->assertSee('Hectare: R$ 20.000,00')
+            ->assertDontSee('Hectare:')
             ->assertSee('wa.me/5573999998888', false);
     }
 
-    public function test_price_per_hectare_is_null_without_area(): void
+    public function test_price_can_be_dollars_and_area_keeps_its_selected_unit(): void
     {
-        $listing = $this->publishedListing(['price' => 500000]);
+        $listing = $this->publishedListing([
+            'category' => 'apartamento',
+            'currency' => 'USD',
+            'price' => 65000000,
+            'area' => 240,
+            'area_unit' => 'm2',
+        ]);
 
-        $this->assertNull($listing->pricePerHectare());
-        $this->get('/pt/fazendas')->assertOk()->assertDontSee('Hectare:');
+        $this->assertSame('240.00', $listing->area_sqm);
+
+        $this->get("/pt/anuncio/{$listing->slug}")
+            ->assertOk()
+            ->assertSee('US$ 65.000.000,00')
+            ->assertSee('240 m²')
+            ->assertDontSee('Hectare:');
+    }
+
+    public function test_exact_location_map_is_conditional_and_loaded_on_request(): void
+    {
+        $withoutCoordinates = $this->publishedListing(['slug' => 'sem-coordenadas']);
+        $withCoordinates = $this->publishedListing([
+            'slug' => 'com-coordenadas',
+            'latitude' => '-14.7880000',
+            'longitude' => '-39.2780000',
+        ]);
+
+        $this->get("/pt/anuncio/{$withoutCoordinates->slug}")
+            ->assertOk()
+            ->assertDontSee('openstreetmap.org/export/embed.html')
+            ->assertDontSee('Carregar mapa');
+
+        $this->get("/pt/anuncio/{$withCoordinates->slug}")
+            ->assertOk()
+            ->assertSee('Carregar mapa')
+            ->assertSee('openstreetmap.org/export/embed.html')
+            ->assertSee('openstreetmap.org/?mlat=', false)
+            ->assertSee('<template x-if="mapOpen">', false);
     }
 
     public function test_category_page_renders_listing_in_selected_language(): void
@@ -149,6 +179,76 @@ class PublicSiteTest extends TestCase
 
         $this->get('/pt/fazendas?region=Ilh%C3%A9us&max_price=1600000&min_area=100')
             ->assertOk()->assertSee('Fazenda Maior')->assertDontSee('Fazenda Menor');
+    }
+
+    public function test_new_categories_have_public_pages_in_all_languages(): void
+    {
+        foreach (['apartamento' => 'apartamentos', 'casa' => 'casas', 'sitio' => 'sitios'] as $category => $path) {
+            $this->publishedListing([
+                'slug' => 'teste-'.$category,
+                'category' => $category,
+                'title' => ['pt' => 'Anúncio '.$category],
+            ]);
+
+            foreach (Listing::LOCALES as $locale) {
+                $this->get("/{$locale}/{$path}")
+                    ->assertOk()
+                    ->assertSee('Anúncio '.$category);
+            }
+        }
+    }
+
+    public function test_area_filter_converts_units_and_price_filter_keeps_currencies_separate(): void
+    {
+        $this->publishedListing([
+            'slug' => 'casa-em-reais',
+            'category' => 'casa',
+            'currency' => 'BRL',
+            'price' => 800000,
+            'area' => 10000,
+            'area_unit' => 'm2',
+            'title' => ['pt' => 'Casa em reais'],
+        ]);
+        $this->publishedListing([
+            'slug' => 'casa-em-dolares',
+            'category' => 'casa',
+            'currency' => 'USD',
+            'price' => 800000,
+            'area' => 1,
+            'area_unit' => 'ha',
+            'title' => ['pt' => 'Casa em dólares'],
+        ]);
+
+        $this->get('/pt/casas?max_price=900000&price_currency=USD&min_area=1&area_unit=ha')
+            ->assertOk()->assertSee('Casa em dólares')->assertDontSee('Casa em reais');
+
+        $this->get('/pt/casas?max_price=900000&min_area=10000&area_unit=m2')
+            ->assertOk()->assertSee('Casa em reais')->assertDontSee('Casa em dólares');
+
+        $this->get('/pt/casas?min_area=1&area_unit=alq_baiano')
+            ->assertOk()->assertDontSee('Casa em reais')->assertDontSee('Casa em dólares');
+    }
+
+    public function test_search_accepts_masked_price_without_changing_its_magnitude(): void
+    {
+        $this->publishedListing(['price' => 65000000]);
+
+        $this->get('/pt/fazendas?max_price=65.000.000%2C00')
+            ->assertOk()->assertSee('Fazenda de Cacau');
+
+        $this->get('/pt/fazendas?max_price=650000')
+            ->assertOk()->assertDontSee('Fazenda de Cacau');
+    }
+
+    public function test_legacy_decimal_price_url_keeps_its_numeric_meaning(): void
+    {
+        $this->publishedListing(['price' => 100]);
+
+        $this->get('/pt/fazendas?max_price=65.000')
+            ->assertOk()->assertDontSee('Fazenda de Cacau');
+
+        $this->get('/pt/fazendas?max_price=100.000')
+            ->assertOk()->assertSee('Fazenda de Cacau');
     }
 
     public function test_header_uses_country_flags_without_email_and_contact_page_keeps_email(): void

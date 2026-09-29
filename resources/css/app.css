@@ -103,7 +103,7 @@ p {
     text-wrap: pretty;
 }
 
-/* Números alinhados em colunas — preços, áreas e valor por hectare. */
+/* Números alinhados em colunas — preços e áreas. */
 .tabular {
     font-variant-numeric: tabular-nums;
 }

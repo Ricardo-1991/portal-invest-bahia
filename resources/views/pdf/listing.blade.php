@@ -32,9 +32,10 @@
 
     <table class="meta">
         <tr>
-            <td><span class="label">Categoria</span><br>{{ ucfirst($listing->category) }}</td>
+            <td><span class="label">Categoria</span><br>{{ __('site.nav.'.$listing->category, [], 'pt') }}</td>
             @if ($listing->region)<td><span class="label">Região</span><br>{{ $listing->region }}</td>@endif
-            @if ($listing->price)<td><span class="label">Valor</span><br>R$ {{ number_format((float) $listing->price, 2, ',', '.') }}</td>@endif
+            @if ($listing->price)<td><span class="label">Valor</span><br>{{ $listing->currency === 'USD' ? 'US$' : 'R$' }} {{ \App\Support\MoneyInput::display($listing->price) }}</td>@endif
+            @if ((float) $listing->area > 0)<td><span class="label">Área</span><br><x-listing-area :listing="$listing" /></td>@endif
         </tr>
     </table>
 

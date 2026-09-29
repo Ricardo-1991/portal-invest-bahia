@@ -24,11 +24,14 @@
             'fazenda' => route('public.fazenda', $l),
             'ativo' => route('public.ativo', $l),
             'servico' => route('public.servico', $l),
+            'apartamento' => route('public.apartamento', $l),
+            'casa' => route('public.casa', $l),
+            'sitio' => route('public.sitio', $l),
         ]),
         @js($regionsByCategory)
     )">
         {{-- Faixa de categoria inspirada no cabeçalho compacto da referência. --}}
-        <x-media-hero :poster="$categoryImages[$category]" eager media-class="opacity-20 object-[center_58%]" class="border-b border-linen-300 bg-linen-100">
+        <x-media-hero :poster="$categoryImages[$category] ?? null" eager media-class="opacity-20 object-[center_58%]" class="border-b border-linen-300 bg-linen-100">
             <x-slot:overlay>
                 <div class="absolute inset-0 bg-gradient-to-r from-linen-100 via-linen-100/95 to-linen-100/55"></div>
             </x-slot:overlay>

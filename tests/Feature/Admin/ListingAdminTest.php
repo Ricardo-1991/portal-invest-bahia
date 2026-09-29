@@ -261,6 +261,90 @@ class ListingAdminTest extends TestCase
         }
     }
 
+    public function test_masked_dollar_price_and_alqueire_area_survive_create_and_edit(): void
+    {
+        $broker = $this->broker();
+        $this->actingAs($broker);
+
+        Livewire::test(CreateListing::class)
+            ->assertSee('x-on:input', false)
+            ->fillForm([
+                'category' => 'sitio',
+                'status' => 'draft',
+                'currency' => 'USD',
+                'price' => '65.000.000,00',
+                'area' => '2.50',
+                'area_unit' => 'alq_baiano',
+                'title' => ['pt' => 'Sítio com preço em dólar'],
+                'description' => ['pt' => 'Descrição do sítio.'],
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $listing = Listing::firstOrFail();
+        $this->assertSame('65000000.00', $listing->price);
+        $this->assertSame('USD', $listing->currency);
+        $this->assertSame('242000.00', $listing->area_sqm);
+
+        Livewire::test(EditListing::class, ['record' => $listing->getKey()])
+            ->assertSet('data.price', '65.000.000,00')
+            ->fillForm(['price' => '66.000.000,00'])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertSame('66000000.00', $listing->fresh()->price);
+
+        Livewire::test(EditListing::class, ['record' => $listing->getKey()])
+            ->fillForm(['price' => ''])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertNull($listing->fresh()->price);
+    }
+
+    public function test_coordinates_require_a_valid_pair_and_show_a_preview(): void
+    {
+        $this->actingAs($this->broker());
+
+        $base = [
+            'category' => 'casa',
+            'status' => 'draft',
+            'title' => ['pt' => 'Casa com localização'],
+            'description' => ['pt' => 'Descrição da casa.'],
+        ];
+
+        Livewire::test(CreateListing::class)
+            ->fillForm([...$base, 'latitude' => '-14.7880000'])
+            ->call('create')
+            ->assertHasFormErrors(['longitude' => 'required_with']);
+
+        Livewire::test(CreateListing::class)
+            ->fillForm([...$base, 'longitude' => '-39.2780000'])
+            ->call('create')
+            ->assertHasFormErrors(['latitude' => 'required_with']);
+
+        Livewire::test(CreateListing::class)
+            ->fillForm([...$base, 'latitude' => '91', 'longitude' => '-181'])
+            ->call('create')
+            ->assertHasFormErrors(['latitude' => 'max', 'longitude' => 'min']);
+
+        Livewire::test(CreateListing::class)
+            ->fillForm([...$base, 'latitude' => '-14.7880000', 'longitude' => '-39.2780000'])
+            ->assertSee('Prévia da localização')
+            ->assertSee('openstreetmap.org/export/embed.html')
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $listing = Listing::firstOrFail();
+        $this->assertSame('-14.7880000', $listing->latitude);
+        $this->assertSame('-39.2780000', $listing->longitude);
+
+        Livewire::test(EditListing::class, ['record' => $listing->getKey()])
+            ->fillForm(['longitude' => null])
+            ->call('save')
+            ->assertHasFormErrors(['longitude' => 'required_with']);
+    }
+
     public function test_listing_numeric_limits_show_validation_instead_of_database_error(): void
     {
         $this->actingAs($this->broker());
@@ -290,8 +374,8 @@ class ListingAdminTest extends TestCase
                 'price' => 'max',
                 'area' => 'max',
             ])
-            ->assertSee('O preço não pode ser maior que R$ 9.999.999.999.999,99.')
-            ->assertSee('A área não pode ser maior que 9.999.999.999,99 hectares.');
+            ->assertSee('O preço não pode ser maior que 9.999.999.999.999,99.')
+            ->assertSee('A área não pode ser maior que 9.999.999.999,99.');
 
         $this->assertDatabaseCount('listings', 0);
     }

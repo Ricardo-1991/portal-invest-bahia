@@ -6,12 +6,12 @@
 
     $navItems = [
         'public.home' => 'site.nav.home',
-        'public.fazenda' => 'site.nav.fazenda',
-        'public.ativo' => 'site.nav.ativo',
-        'public.servico' => 'site.nav.servico',
         'public.informacoes' => 'site.nav.informacoes',
         'public.contatos' => 'site.nav.contatos',
     ];
+
+    $categoryItems = \App\Models\Listing::CATEGORIES;
+    $categoryActive = $current === 'public.all' || in_array($current, array_map(fn ($category) => 'public.'.$category, $categoryItems), true);
 
     $contact = config('pib.contact');
     $phone = $contact['phones'][0] ?? null;
@@ -72,6 +72,24 @@
                             @lang($key)
                             <span class="absolute inset-x-0 bottom-0 h-0.5 origin-left bg-ouro-500 transition-transform duration-300 {{ $active ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100' }}"></span>
                         </a>
+                        @if ($route === 'public.home')
+                            <div x-data="{ categoryOpen: false }" @click.outside="categoryOpen = false" @keydown.escape.window="categoryOpen = false" class="relative">
+                                <button type="button" @click="categoryOpen = !categoryOpen"
+                                        :aria-expanded="categoryOpen" aria-controls="nav-categories"
+                                        class="group relative flex items-center gap-1.5 py-4 text-sm font-semibold transition-colors duration-200 hover:text-ouro-700 {{ $categoryActive ? 'text-ouro-700' : 'text-onyx-600' }}">
+                                    @lang('site.nav.all')
+                                    <span aria-hidden="true" class="text-xs">▾</span>
+                                    <span class="absolute inset-x-0 bottom-0 h-0.5 bg-ouro-500 {{ $categoryActive ? '' : 'scale-x-0' }}"></span>
+                                </button>
+                                <div id="nav-categories" x-show="categoryOpen" x-cloak
+                                     class="absolute left-0 top-full z-40 min-w-56 rounded-b-card border border-linen-200 bg-white p-2 shadow-panel">
+                                    <a href="{{ route('public.all', $l) }}" class="block rounded-card px-3 py-2 text-sm font-semibold text-onyx-700 hover:bg-linen-50 hover:text-ouro-700">@lang('site.listing.all_title')</a>
+                                    @foreach ($categoryItems as $category)
+                                        <a href="{{ route('public.'.$category, $l) }}" class="block rounded-card px-3 py-2 text-sm font-semibold text-onyx-700 hover:bg-linen-50 hover:text-ouro-700">{{ __('site.nav.'.$category) }}</a>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
                     @endforeach
                 </nav>
 
@@ -82,11 +100,17 @@
              x-transition:enter="transition ease-pib duration-200"
              x-transition:enter-start="opacity-0 -translate-y-2"
              x-transition:enter-end="opacity-100 translate-y-0"
-                 class="flex flex-col gap-1 py-3 lg:hidden">
+                 class="flex max-h-[calc(100dvh-5.25rem)] flex-col gap-1 overflow-y-auto py-3 lg:hidden">
                 @foreach ($navItems as $route => $key)
                     @php $active = $current === $route; @endphp
                     <a href="{{ route($route, $l) }}" @if ($active) aria-current="page" @endif
                        class="rounded-card border-l-2 px-3 py-2.5 font-semibold transition hover:bg-white hover:text-ouro-700 {{ $active ? 'border-ouro-500 bg-white text-ouro-700' : 'border-transparent text-onyx-700' }}">@lang($key)</a>
+                    @if ($route === 'public.home')
+                        <a href="{{ route('public.all', $l) }}" class="rounded-card border-l-2 border-transparent px-3 py-2.5 font-semibold text-onyx-700 transition hover:bg-white hover:text-ouro-700">@lang('site.listing.all_title')</a>
+                        @foreach ($categoryItems as $category)
+                            <a href="{{ route('public.'.$category, $l) }}" class="rounded-card border-l-2 px-6 py-2 text-sm font-semibold transition hover:bg-white hover:text-ouro-700 {{ $current === 'public.'.$category ? 'border-ouro-500 bg-white text-ouro-700' : 'border-transparent text-onyx-700' }}">{{ __('site.nav.'.$category) }}</a>
+                        @endforeach
+                    @endif
                 @endforeach
             </nav>
         </div>

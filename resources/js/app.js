@@ -2,14 +2,73 @@ import Alpine from 'alpinejs';
 
 window.Alpine = Alpine;
 
+// O texto visível usa separadores brasileiros; a busca envia sempre decimal sem máscara.
+function formatMoney(value, complete = false) {
+    if (value === '' || value === null || value === undefined) return '';
+    const [integer, decimals = ''] = String(value).split('.');
+    const grouped = (integer || '0').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return grouped + ((complete || decimals !== '') ? `,${complete ? (decimals + '00').slice(0, 2) : decimals}` : '');
+}
+
+function moneyFilterState(filters) {
+    return {
+        maxPrice: filters.max_price ?? '',
+        maxPriceDisplay: formatMoney(filters.max_price, true),
+        priceCurrency: filters.price_currency || 'BRL',
+        minArea: filters.min_area ?? '',
+        areaUnit: filters.area_unit || 'ha',
+
+        onPriceInput(event) {
+            const input = event.target;
+            const original = input.value;
+            const cursor = input.selectionStart ?? original.length;
+            const comma = original.indexOf(',');
+            const inDecimals = comma >= 0 && cursor > comma;
+            const digitsBefore = (inDecimals ? original.slice(comma + 1, cursor) : original.slice(0, cursor))
+                .replace(/\D/g, '').length;
+            const parts = original.replace(/[^\d,]/g, '').split(',');
+            const integer = (parts[0] || '0').replace(/^0+(?=\d)/, '');
+            const decimals = parts.slice(1).join('').slice(0, 2);
+            const hasComma = original.includes(',');
+
+            this.maxPrice = integer === '0' && !original.match(/\d/) ? ''
+                : `${integer}${decimals ? `.${decimals}` : ''}`;
+            this.maxPriceDisplay = this.maxPrice === '' ? ''
+                : formatMoney(this.maxPrice) + (hasComma && !decimals ? ',' : '');
+            input.value = this.maxPriceDisplay;
+
+            let position = 0;
+            if (inDecimals) {
+                position = this.maxPriceDisplay.indexOf(',') + 1 + digitsBefore;
+            } else {
+                let seen = 0;
+                while (position < this.maxPriceDisplay.length && seen < digitsBefore) {
+                    if (/\d/.test(this.maxPriceDisplay[position])) seen++;
+                    position++;
+                }
+            }
+            input.setSelectionRange(position, position);
+        },
+
+        onPriceBlur(event) {
+            this.maxPriceDisplay = formatMoney(this.maxPrice, true);
+            event.target.value = this.maxPriceDisplay;
+        },
+
+        normalizePriceOnSubmit(event) {
+            const input = event.target.elements.namedItem('max_price');
+            if (input) input.value = this.maxPrice;
+        },
+    };
+}
+
 // Estado do filtro da home. As regiões acompanham a categoria selecionada e
 // uma região deixa de ser enviada se não existir na nova categoria.
 Alpine.data('listingFilter', (regionsByCategory, filters) => ({
     category: filters.category || 'fazenda',
     q: filters.q || '',
     region: filters.region || '',
-    maxPrice: filters.max_price ?? '',
-    minArea: filters.min_area ?? '',
+    ...moneyFilterState(filters),
     regionsByCategory,
 
     get regions() {
@@ -27,8 +86,7 @@ Alpine.data('categorySearch', (baseUrl, filters, categoryRoutes, regionsByCatego
     category: filters.category || 'fazenda',
     q: filters.q || '',
     region: filters.region || '',
-    maxPrice: filters.max_price ?? '',
-    minArea: filters.min_area ?? '',
+    ...moneyFilterState(filters),
     categoryRoutes,
     regionsByCategory,
     loading: false,
@@ -46,8 +104,14 @@ Alpine.data('categorySearch', (baseUrl, filters, categoryRoutes, regionsByCatego
         const params = new URLSearchParams();
         if (this.q.trim()) params.set('q', this.q.trim());
         if (this.region) params.set('region', this.region);
-        if (this.maxPrice !== '' && this.maxPrice !== null) params.set('max_price', this.maxPrice);
-        if (this.minArea !== '' && this.minArea !== null) params.set('min_area', this.minArea);
+        if (this.maxPrice !== '' && this.maxPrice !== null) {
+            params.set('max_price', this.maxPrice);
+            params.set('price_currency', this.priceCurrency);
+        }
+        if (this.minArea !== '' && this.minArea !== null) {
+            params.set('min_area', this.minArea);
+            params.set('area_unit', this.areaUnit);
+        }
 
         return params;
     },
