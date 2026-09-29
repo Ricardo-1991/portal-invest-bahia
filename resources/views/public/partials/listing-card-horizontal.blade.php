@@ -13,7 +13,7 @@
      É um <article> (não um <a> único) porque contém o botão de WhatsApp. --}}
 <article class="group overflow-hidden rounded-panel border border-linen-200 bg-white shadow-card transition-all duration-500 ease-pib hover:-translate-y-1 hover:shadow-card-hover md:grid md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
     <a href="{{ $detailUrl }}" class="relative block overflow-hidden bg-linen-100" tabindex="-1" aria-hidden="true">
-        <img src="{{ $listing->mainImageUrl('thumb') ?: asset('images/property-placeholder.webp') }}"
+        <img src="{{ $listing->mainImageUrl('public_thumb') ?: asset('images/property-placeholder.webp') }}"
              alt="" loading="lazy" decoding="async"
              class="aspect-[4/3] size-full object-contain p-1 transition-opacity duration-300 ease-pib group-hover:opacity-95 md:aspect-auto md:min-h-[280px]">
     </a>

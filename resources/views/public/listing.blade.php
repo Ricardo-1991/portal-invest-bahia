@@ -9,7 +9,7 @@
         $images->push($main);
     }
     foreach ($gallery as $media) {
-        $images->push($media->getUrl());
+        $images->push($media->getUrl('watermarked'));
     }
     if ($images->isEmpty()) {
         $images->push(asset('images/property-placeholder.webp'));

@@ -17,7 +17,7 @@
             <div class="relative h-80 select-none" style="perspective: 1200px;">
                 @foreach ($events as $index => $event)
                     @php
-                        $image = $event->imageUrl('thumb') ?: asset('images/property-placeholder.webp');
+                        $image = $event->imageUrl('public_thumb') ?: asset('images/property-placeholder.webp');
                         $data = [
                             'title' => $event->title,
                             'subtitle' => $event->subtitle,

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\PublicWatermark;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -48,11 +49,19 @@ class Event extends Model implements HasMedia
     public function registerMediaConversions(?Media $media = null): void
     {
         $this->addMediaConversion('thumb')
+            ->performOnCollections('image')
             ->fit(Fit::Contain, 800, 500)
             ->nonQueued();
+
+        PublicWatermark::apply($this->addMediaConversion('public_thumb')
+            ->performOnCollections('image')
+            ->fit(Fit::Contain, 800, 500))->nonQueued();
+
+        PublicWatermark::apply($this->addMediaConversion('watermarked')
+            ->performOnCollections('image'))->nonQueued();
     }
 
-    public function imageUrl(string $conversion = ''): ?string
+    public function imageUrl(string $conversion = 'watermarked'): ?string
     {
         return $this->getFirstMedia('image')?->getUrl($conversion) ?: null;
     }
