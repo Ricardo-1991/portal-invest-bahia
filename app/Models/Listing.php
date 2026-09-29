@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\AreaUnits;
+use App\Support\PublicWatermark;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -125,12 +126,20 @@ class Listing extends Model implements HasMedia
     public function registerMediaConversions(?Media $media = null): void
     {
         $this->addMediaConversion('thumb')
+            ->performOnCollections('main', 'gallery')
             ->fit(Fit::Contain, 600, 400)
             ->nonQueued();
+
+        PublicWatermark::apply($this->addMediaConversion('public_thumb')
+            ->performOnCollections('main', 'gallery')
+            ->fit(Fit::Contain, 600, 400))->nonQueued();
+
+        PublicWatermark::apply($this->addMediaConversion('watermarked')
+            ->performOnCollections('main', 'gallery'))->nonQueued();
     }
 
     /** URL da imagem principal (ou null). */
-    public function mainImageUrl(string $conversion = ''): ?string
+    public function mainImageUrl(string $conversion = 'watermarked'): ?string
     {
         $media = $this->getFirstMedia('main') ?? $this->getFirstMedia('gallery');
 

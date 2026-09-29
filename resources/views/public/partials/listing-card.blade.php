@@ -9,8 +9,8 @@
 {{-- Card vertical — usado na home e no catálogo, inspirado na grade da referência. --}}
 <article class="group flex h-full w-full flex-col overflow-hidden rounded-panel border border-linen-200 bg-white shadow-card transition duration-500 ease-pib hover:-translate-y-1 hover:border-linen-300 hover:shadow-card-hover">
     <a href="{{ $detailUrl }}" class="listing-media relative block aspect-[4/3] w-full overflow-hidden bg-linen-100">
-        <img src="{{ $listing->mainImageUrl('thumb') ?: asset('images/property-placeholder.webp') }}"
-             alt="{{ $listing->mainImageUrl('thumb') ? $listing->title : '' }}"
+        <img src="{{ $listing->mainImageUrl('public_thumb') ?: asset('images/property-placeholder.webp') }}"
+             alt="{{ $listing->mainImageUrl('public_thumb') ? $listing->title : '' }}"
              loading="lazy" decoding="async"
              class="size-full object-contain p-1 transition-opacity duration-300 ease-pib group-hover:opacity-95">
 
